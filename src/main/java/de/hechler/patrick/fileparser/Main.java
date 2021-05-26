@@ -133,7 +133,7 @@ public class Main {
 	
 	private static void setup(String[] args) {
 		finishMsg = true;
-		ParserProperties props = null;
+		ParserTemplate props = null;
 		String[] headLines = null, tailLines = null;
 		String lineStart = null, lineEnd = null;
 		Boolean lineStartAlsoOnHeadLines = null, lineStartAlsoOnTailLines = null, lineEndAlsoOnHeadLines = null, lineEndAlsoOnTailLines = null;
@@ -194,27 +194,27 @@ public class Main {
 			case "-empty":
 			case "-ep":
 				if (props != null) exit("already default property selected: " + props, args);
-				props = Parser.EMPTY_PROPERTIES;
+				props = Parser.EMPTY_TEMPLATE;
 				break;
 			case "-arduinopotloop":
 			case "-aplp":
 				if (props != null) exit("already default property selected: " + props, args);
-				props = Parser.ARDUINO_PROPERTIES_WITH_LOOP_REPLACE;
+				props = Parser.ARDUINO_TEMPLATE_WITH_LOOP_REPLACE;
 				break;
 			case "-arduinoasmloop":
 			case "-alp":
 				if (props != null) exit("already default property selected: " + props, args);
-				props = Parser.ARDUINO_PROPERTIES_WITH_EMPTY_ASM_LOOP;
+				props = Parser.ARDUINO_TEMPLATE_WITH_EMPTY_ASM_LOOP;
 				break;
 			case "-arduino":
 			case "-ap":
 				if (props != null) exit("already default property selected: " + props, args);
-				props = Parser.ARDUINO_PROPERTIES;
+				props = Parser.ARDUINO_TEMPLATE;
 				break;
 			case "-main":
 			case "-mp":
 				if (props != null) exit("already default property selected: " + props, args);
-				props = Parser.MAIN_PROPERTIES;
+				props = Parser.MAIN_TEMPLATE;
 				break;
 			case "-headlines":
 			case "-hl": {
@@ -382,10 +382,10 @@ public class Main {
 		}
 		if (src == null) exit("no source file!", args);
 		if (dest == null) {
-			if (props == Parser.ARDUINO_PROPERTIES || props == Parser.ARDUINO_PROPERTIES_WITH_EMPTY_ASM_LOOP || props == Parser.ARDUINO_PROPERTIES_WITH_LOOP_REPLACE) {
+			if (props == Parser.ARDUINO_TEMPLATE || props == Parser.ARDUINO_TEMPLATE_WITH_EMPTY_ASM_LOOP || props == Parser.ARDUINO_TEMPLATE_WITH_LOOP_REPLACE) {
 				dest = src.replaceFirst("^(.*)\\." + ASSEMBLER_POSTFIX + "$", "$1\\." + ARDUINO_POSTFIX);
 				if (dest == src) dest = src + "." + ARDUINO_POSTFIX;
-			} else if (props == Parser.MAIN_PROPERTIES) {
+			} else if (props == Parser.MAIN_TEMPLATE) {
 				dest = src.replaceFirst("^(.*)\\." + ASSEMBLER_POSTFIX + "$", "$1\\." + MAIN_POSTFIX);
 				if (dest == src) dest = src + "." + MAIN_POSTFIX;
 			} else {
@@ -438,7 +438,7 @@ public class Main {
 			e.printStackTrace();
 		}
 		try {
-			props = new ParserProperties(headLines == null ? props.headLines : headLines, tailLines == null ? props.tailLines : tailLines, lineStart == null ? props.lineStart : lineStart,
+			props = new ParserTemplate(headLines == null ? props.headLines : headLines, tailLines == null ? props.tailLines : tailLines, lineStart == null ? props.lineStart : lineStart,
 					lineStartAlsoOnHeadLines == null ? props.lineStartAlsoOnHeadLines : lineStartAlsoOnHeadLines, lineStartAlsoOnTailLines == null ? props.lineStartAlsoOnTailLines : lineStartAlsoOnTailLines,
 					lineEnd == null ? props.lineEnd : lineEnd, lineEndAlsoOnHeadLines == null ? props.lineEndAlsoOnHeadLines : lineEndAlsoOnHeadLines,
 					lineEndAlsoOnTailLines == null ? props.lineEndAlsoOnTailLines : lineEndAlsoOnTailLines, supressCommentExtraction == null ? props.supressCommentExtraction : supressCommentExtraction,

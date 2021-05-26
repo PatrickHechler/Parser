@@ -4,32 +4,31 @@ import de.hechler.patrick.zeugs.check.*;
 import de.hechler.patrick.zeugs.check.anotations.*;
 
 @CheckClass
+//TODO checks
 public class MAINChecker extends Checker {
 	
 	@Start(onlyOnce = true)
-	public void beginAll() {
+	void beginAll() {
 		
 	}
 	
 	@End(onlyOnce =  true)
-	public void endAll() {
+	void endAll() {
 		
 	}
 	
 	@Start
-	public void start() {
+	void start() {
 		
 	}
 		
 	@End
-	public void end() {
+	void end() {
 		
 	}
 	
-	
 	@Check
-	//TODO check
-	public void check() {
+	void check() {
 		
 	}
 	

@@ -7,16 +7,16 @@ public class Parser {
 	
 	private static final String lsregex = "(\r\n)|\r|\n";
 	
-	public static final ParserProperties EMPTY_PROPERTIES                       = new ParserProperties(new String[0], new String[0], "", false, false, "", false, false, true, "", "", "", false,
+	public static final ParserTemplate EMPTY_TEMPLATE                       = new ParserTemplate(new String[0], new String[0], "", false, false, "", false, false, true, "", "", "", false,
 			Collections.emptyList(), false, false, System.lineSeparator());
-	public static final ParserProperties MAIN_PROPERTIES                        = new ParserProperties(new String[] {"int main() {", "\tasm volatile (" }, new String[] {"\t);", "\treturn 0;", "}" }, "\t\t\"", false,
+	public static final ParserTemplate MAIN_TEMPLATE                        = new ParserTemplate(new String[] {"int main() {", "\tasm volatile (" }, new String[] {"\t);", "\treturn 0;", "}" }, "\t\t\"", false,
 			false, "\\n\"", false, false, false, ";", "//", "", true, Collections.emptyList(), false, false, System.lineSeparator());
-	public static final ParserProperties ARDUINO_PROPERTIES                     = new ParserProperties(new String[] {"void setup() {", "\tasm volatile (" }, new String[] {"\t);", "}", "", "void loop() {}" },
+	public static final ParserTemplate ARDUINO_TEMPLATE                     = new ParserTemplate(new String[] {"void setup() {", "\tasm volatile (" }, new String[] {"\t);", "}", "", "void loop() {}" },
 			"\t\t\"", false, false, "\\n\"", false, false, false, ";", "//", "", true, Collections.emptyList(), false, false, System.lineSeparator());
-	public static final ParserProperties ARDUINO_PROPERTIES_WITH_EMPTY_ASM_LOOP = new ParserProperties(new String[] {"void setup() {", "\tasm volatile (" },
+	public static final ParserTemplate ARDUINO_TEMPLATE_WITH_EMPTY_ASM_LOOP = new ParserTemplate(new String[] {"void setup() {", "\tasm volatile (" },
 			new String[] {"\t);", "}", "", "void loop() {", "\tasm volatile (", "\t\t\"\\n\"", "\t);", "}" }, "\t\t\"", false, false, "\\n\"", false, false, false, ";", "//", "", true, Collections.emptyList(),
 			false, false, System.lineSeparator());
-	public static final ParserProperties ARDUINO_PROPERTIES_WITH_LOOP_REPLACE   = new ParserProperties(new String[] {"void setup() {", "\tasm volatile (" }, new String[] {"\t);", "}" }, "\t\t\"", false, false,
+	public static final ParserTemplate ARDUINO_TEMPLATE_WITH_LOOP_REPLACE   = new ParserTemplate(new String[] {"void setup() {", "\tasm volatile (" }, new String[] {"\t);", "}" }, "\t\t\"", false, false,
 			"\\n\"", false, false, false, ";", "//", "", true,
 			Arrays.asList(
 			new Replace("^(\\s*)([lL][oO][oO][pP])\\s*\\:\\s*$", 
@@ -29,21 +29,21 @@ public class Parser {
 					"$1\t\t\"$2\\:\\\\n\\\"\n\t);\n}\n\nvoid loop() {\n\tasm volatile(\n$1\t\t\"$2\\:\\\\n\\\"\n$3\t\t\"$4\\\\n\\\"//$5")),
 			false, false, System.lineSeparator());
 	
-	private ParserProperties properties;
+	private ParserTemplate properties;
 	
 	
 	
-	public Parser(ParserProperties properties) {
-		this.properties = properties == null ? EMPTY_PROPERTIES : properties;
+	public Parser(ParserTemplate properties) {
+		this.properties = properties == null ? EMPTY_TEMPLATE : properties;
 	}
 	
 	
 	
-	public ParserProperties getProperties() {
+	public ParserTemplate getProperties() {
 		return properties;
 	}
 	
-	public void setProperties(ParserProperties properties) {
+	public void setProperties(ParserTemplate properties) {
 		this.properties = Objects.requireNonNull(properties, "no null properties permittet");
 	}
 	
@@ -118,7 +118,7 @@ public class Parser {
 	
 	
 	
-	public static class ParserProperties {
+	public static class ParserTemplate {
 		
 		public final String[]       headLines;
 		public final String[]       tailLines;
@@ -140,7 +140,7 @@ public class Parser {
 		
 		
 		
-		public ParserProperties(String[] headLines, String[] tailLines, String lineStart, boolean lineStartAlsoOnHeadLines, boolean lineStartAlsoOnTailLines, String lineEnd, boolean lineEndAlsoOnHeadLines,
+		public ParserTemplate(String[] headLines, String[] tailLines, String lineStart, boolean lineStartAlsoOnHeadLines, boolean lineStartAlsoOnTailLines, String lineEnd, boolean lineEndAlsoOnHeadLines,
 				boolean lineEndAlsoOnTailLines, boolean supressCommentExtraction, String asmCommentSymbol, String parsedCommendSymbol, String commentEndLine, boolean startIgnoresWhite, List <Replace> replaces,
 				boolean supressReplaces, boolean continueAfterReplace, String lineSeparator) {
 			this.headLines = headLines == null ? new String[0] : headLines.clone();
