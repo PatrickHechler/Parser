@@ -6,7 +6,7 @@ import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
 
-import de.hechler.patrick.fileparser.Parser.ParserTemplate;
+import de.hechler.patrick.fileparser.*;
 import de.hechler.patrick.zeugs.check.*;
 import de.hechler.patrick.zeugs.check.anotations.*;
 
@@ -34,7 +34,7 @@ public class ParserChecker extends Checker {
 		bais = null;
 		scanner = null;
 		baos = new ByteArrayOutputStream();
-		print = new PrintStream(baos, false /* the checks will decide when it will flush */, StandardCharsets.UTF_8);
+		print = new PatrOutput(baos, StandardCharsets.UTF_8, System.lineSeparator());
 		template = Parser.EMPTY_TEMPLATE;
 		parser = new Parser(template);
 	}
@@ -53,7 +53,7 @@ public class ParserChecker extends Checker {
 	void checkEmptyTemplate() {
 		String str = "this is a nice text.\nIt will be unchanged!\n\n\t\t\n  \n".replaceAll("(\r\n)|\r|\n", "\\\r\\\n");
 		bais = new ByteArrayInputStream(str.getBytes(StandardCharsets.UTF_8));
-		scanner = new Scanner(bais, StandardCharsets.UTF_8);
+		scanner = new Scanner(bais, StandardCharsets.UTF_8.name());
 		parser.parse(scanner, print);
 		print.flush();
 		assertEquals(str, new String(baos.toByteArray(), StandardCharsets.UTF_8));

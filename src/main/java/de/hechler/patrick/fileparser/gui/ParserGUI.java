@@ -1,5 +1,7 @@
 package de.hechler.patrick.fileparser.gui;
 
+import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 
 import de.hechler.patrick.fileparser.ParserTemplate;
@@ -21,8 +23,23 @@ public class ParserGUI extends JFrame {
 		setTitle("ENTER ARGS");
 		
 		setResizable(true);
+		JFileChooser fc = new JFileChooser();
+		JButton srcDir = new JButton("source dir");
+		srcDir.addActionListener((a) -> {
+			System.out.println("browse files");
+			int returnVal = fc.showOpenDialog(this);
+			if (returnVal != JFileChooser.APPROVE_OPTION) {
+				System.out.println("user has canceld");
+			}else {
+				System.out.println(fc.getSelectedFile());
+			}
+		});
 		
+		srcDir.setBounds(10, 10, 100, 20);
+		add(srcDir);
 		
+		setBounds(0, 0, 500, 100);
+		setLocationRelativeTo(null);
 		/*
 		out.println("<--help>");
 		out.println("          to print this text on the default out");
@@ -103,12 +120,12 @@ public class ParserGUI extends JFrame {
 		 */
 		
 		setVisible(true);
+		toFront();
 		return this;
 	}
 	
 	public String[] getArgs() {
 		// TODO Auto-generated method stub
-		
 		
 		throw new RuntimeException("noch nicht gemacht!");
 	}

@@ -434,7 +434,7 @@ public class Main {
 			exit("class -> " + e.getClass().getName() + "   msg -> " + e.getLocalizedMessage(), args);
 		}
 		try {
-			print = new PatrOutput(new FileOutputStream(dest), cs);
+			print = new PatrOutput(new FileOutputStream(dest), cs, System.lineSeparator());
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 			exit("class -> " + e.getClass().getName() + "   msg -> " + e.getLocalizedMessage(), args);
