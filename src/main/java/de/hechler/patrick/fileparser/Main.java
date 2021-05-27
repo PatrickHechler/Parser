@@ -16,6 +16,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
 
+import de.hechler.patrick.fileparser.gui.ParserGUI;
+
 public class Main {
 	
 	private static final String ASSEMBLER_POSTFIX = "asm";
@@ -31,6 +33,7 @@ public class Main {
 	private static boolean finishMsg;
 	
 	public static void main(String[] args) {
+		if (args.length == 0) args = new ParserGUI().load().getArgs();
 		long start = System.currentTimeMillis();
 		setup(args);
 		if (parser == null) exit("parser is not set", args);
@@ -422,7 +425,7 @@ public class Main {
 		} catch (UnsupportedCharsetException | IllegalCharsetNameException e) {
 			e.printStackTrace();
 			exit("class -> " + e.getClass().getName() + "   msg -> " + e.getLocalizedMessage(), args);
-			cs = null;//to appease the compiler this line will never be called
+			cs = null;// to appease the compiler this line will never be called
 		}
 		try {
 			scan = new Scanner(source, charset);
