@@ -13,16 +13,16 @@ import de.hechler.patrick.fileparser.Parser.*;
 public class Main {
 	
 	private static final String ASSEMBLER_POSTFIX = "asm";
-	private static final String ARDUINO_POSTFIX   = "ino";
-	private static final String MAIN_POSTFIX      = "c";
-	private static final String OTHER_POSTFIX     = "txt";
+	private static final String ARDUINO_POSTFIX = "ino";
+	private static final String MAIN_POSTFIX = "c";
+	private static final String OTHER_POSTFIX = "txt";
 	
 	
 	
-	private static Parser      parser;
-	private static Scanner     scan;
+	private static Parser parser;
+	private static Scanner scan;
 	private static PrintStream print;
-	private static boolean     finishMsg;
+	private static boolean finishMsg;
 	
 	public static void main(String[] args) {
 		long start = System.currentTimeMillis();
@@ -64,7 +64,8 @@ public class Main {
 		out.println("<--noFinish> or <--nf>");
 		out.println("          to print no finish message after finishing with parsing");
 		out.println("<--silent> or <--s>");
-		out.println("          to print the parsed not to the generated target file (if no target is set it will be generated from the name of the source file, but only if silent is not set)");
+		out.println(
+				"          to print the parsed not to the generated target file (if no target is set it will be generated from the name of the source file, but only if silent is not set)");
 		out.println("<--print>");
 		out.println("          to print the parsed also to the default out");
 		out.println("<-print>");
@@ -113,6 +114,9 @@ public class Main {
 		out.println("          to enble/disable if the parse should stop modifiing the line after all replacements are done and they changed something");
 		out.println("<-sr> or <-supressReplaces> <true>/<1> or <false>/<0>");
 		out.println("          to supress(true/1) or allow(false/0) replaces");
+		out.println("<-els> or <-explicitLineSep> <true>/<1> or <false>/<0>");
+		out.println("          to set if the lines need a explicit line separator (<true>/<1>) or if it should be appanded after each line");
+		out.println("          if it is set <true>/<1> the lines will be read with a line separator");
 		out.println("<-scp> or <-supressCommentParsing> <true>/<1> or <false>/<0>");
 		out.println("          to tell the parser that Assembler comments (by default ';') should be placed after the endLine (but not after the lineSeparator or endCommentLine)");
 		out.println("<-parsedCommentSymbol> or <-pcs> [COMMENT_SYMBOL]");
@@ -153,6 +157,7 @@ public class Main {
 		List <Replace> replaces = new ArrayList <>();
 		Boolean continueAfterReplaces = null;
 		Boolean supressReplaces = null;
+		Boolean explicitLineSep = null;
 		for (int i = 0; i < args.length; i ++ ) {
 			switch (args[i].toLowerCase()) {
 			case "--nf":
@@ -322,6 +327,13 @@ public class Main {
 				if (supressReplaces != null) exit("supress Replaces is already set: " + supressReplaces, args);
 				supressReplaces = strToBool(args[i], args);
 				break;
+			case "-els":
+			case "-explicitlinesep":
+				i ++ ;
+				if (i >= args.length) exit("need more arguments on option <-explicitLineSep>", args);
+				if (explicitLineSep != null) exit("supress Comment parsing is already set: " + explicitLineSep, args);
+				explicitLineSep = strToBool(args[i], args);
+				break;
 			case "-supresscommentparsing":
 			case "-scp":
 				i ++ ;
@@ -438,14 +450,17 @@ public class Main {
 			e.printStackTrace();
 		}
 		try {
-			props = new ParserTemplate(headLines == null ? props.headLines : headLines, tailLines == null ? props.tailLines : tailLines, lineStart == null ? props.lineStart : lineStart,
-					lineStartAlsoOnHeadLines == null ? props.lineStartAlsoOnHeadLines : lineStartAlsoOnHeadLines, lineStartAlsoOnTailLines == null ? props.lineStartAlsoOnTailLines : lineStartAlsoOnTailLines,
-					lineEnd == null ? props.lineEnd : lineEnd, lineEndAlsoOnHeadLines == null ? props.lineEndAlsoOnHeadLines : lineEndAlsoOnHeadLines,
-					lineEndAlsoOnTailLines == null ? props.lineEndAlsoOnTailLines : lineEndAlsoOnTailLines, supressCommentExtraction == null ? props.supressCommentExtraction : supressCommentExtraction,
+			props = new ParserTemplate(headLines == null ? props.headLines : headLines, tailLines == null ? props.tailLines : tailLines,
+					lineStart == null ? props.lineStart : lineStart, lineStartAlsoOnHeadLines == null ? props.lineStartAlsoOnHeadLines : lineStartAlsoOnHeadLines,
+					lineStartAlsoOnTailLines == null ? props.lineStartAlsoOnTailLines : lineStartAlsoOnTailLines, lineEnd == null ? props.lineEnd : lineEnd,
+					lineEndAlsoOnHeadLines == null ? props.lineEndAlsoOnHeadLines : lineEndAlsoOnHeadLines,
+					lineEndAlsoOnTailLines == null ? props.lineEndAlsoOnTailLines : lineEndAlsoOnTailLines,
+					supressCommentExtraction == null ? props.supressCommentExtraction : supressCommentExtraction,
 					asmCommentSymbol == null ? props.asmCommentSymbol : asmCommentSymbol, parsedCommentSymbol == null ? props.parsedCommentSymbol : parsedCommentSymbol,
 					commentEndLine == null ? props.commentEndLine : commentEndLine, startAfterWhite == null ? props.startAfterWhite : startAfterWhite,
 					(replaces.isEmpty() ? (props == null ? Collections.emptyList() : props.replaces) : replaces), supressReplaces == null ? props.supressReplaces : supressReplaces,
-					continueAfterReplaces == null ? props.continueAfterReplace : continueAfterReplaces, lineSep == null ? (props == null ? System.lineSeparator() : props.lineSeparator) : lineSep);
+					continueAfterReplaces == null ? props.continueAfterReplace : continueAfterReplaces,
+					lineSep == null ? (props == null ? System.lineSeparator() : props.lineSeparator) : lineSep, explicitLineSep == null ? props.explicitLineSep : explicitLineSep);
 		} catch (NullPointerException e) {
 			StringBuilder build = new StringBuilder("i am missing some properties: [");
 			if (headLines == null) build.append("headLines, ");
@@ -465,6 +480,7 @@ public class Main {
 			if (supressReplaces == null) build.append("supressReplaces, ");
 			if (continueAfterReplaces == null) build.append("onlyReplacesWhenReplaced, ");
 			if (lineSep == null) build.append("(lineSeparator {optional}), ");
+			if (explicitLineSep == null) build.append("explicitLineSep, ");
 			exit(build.append(']').toString(), args);
 		}
 		parser = new Parser(props);
