@@ -1,14 +1,20 @@
 package de.hechler.patrick.fileparser;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.charset.Charset;
+import java.nio.charset.IllegalCharsetNameException;
+import java.nio.charset.UnsupportedCharsetException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
-
-import de.hechler.patrick.fileparser.Parser.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Scanner;
 
 public class Main {
 	
@@ -410,44 +416,25 @@ public class Main {
 		Path source = Paths.get(src);
 		if ( !Files.exists(source)) exit("no source file found src: '" + src + "'", args);
 		Charset cs;
-		if (charset != null) cs = Charset.forName(charset);
-		else cs = Charset.defaultCharset();
 		try {
-			scan = new Scanner(source.toFile(), cs);
-			if ( !out && !err) {
-				print = new PrintStream(target.toFile(), cs);
-			} else {
-				final boolean out2 = out, err2 = err, silent2 = silent;
-				print = new PrintStream(target.toFile(), cs) {
-					
-					@Override
-					public void println() {
-						if (err2) System.err.println();
-						if (out2) System.out.println();
-						if ( !silent2) super.println();
-					}
-					
-					@Override
-					public void println(String str) {
-						if (err2) System.err.println(str);
-						if (out2) System.out.println(str);
-						if ( !silent2) {
-							super.print(str);// to ensure that override of print(String) and println() does not print doubled to System.err/out
-							super.println(str);
-						}
-					}
-					
-					@Override
-					public void print(String str) {
-						if (err2) System.err.print(str);
-						if (out2) System.out.print(str);
-						if ( !silent2) super.print(str);
-					}
-					
-				};
-			}
-		} catch (IOException e) {
+			if (charset != null) cs = Charset.forName(charset);
+			else cs = Charset.defaultCharset();
+		} catch (UnsupportedCharsetException | IllegalCharsetNameException e) {
 			e.printStackTrace();
+			exit("class -> " + e.getClass().getName() + "   msg -> " + e.getLocalizedMessage(), args);
+			cs = null;//to appease the compiler this line will never be called
+		}
+		try {
+			scan = new Scanner(source, charset);
+		} catch (UnsupportedCharsetException | IllegalCharsetNameException | IOException e) {
+			e.printStackTrace();
+			exit("class -> " + e.getClass().getName() + "   msg -> " + e.getLocalizedMessage(), args);
+		}
+		try {
+			print = new PatrOutput(new FileOutputStream(dest), cs);
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+			exit("class -> " + e.getClass().getName() + "   msg -> " + e.getLocalizedMessage(), args);
 		}
 		try {
 			props = new ParserTemplate(headLines == null ? props.headLines : headLines, tailLines == null ? props.tailLines : tailLines,

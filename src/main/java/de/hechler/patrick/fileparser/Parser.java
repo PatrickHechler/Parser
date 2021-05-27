@@ -7,7 +7,7 @@ public class Parser {
 	
 	private static final String lsregex = "(\r\n)|\r|\n";
 	
-	public static final ParserTemplate EMPTY_TEMPLATE = new ParserTemplate(new String[0], new String[0], "", false, false, "", false, false, true, "", "", "", false,
+/*	public static final ParserTemplate EMPTY_TEMPLATE = new ParserTemplate(new String[0], new String[0], "", false, false, "", false, false, true, "", "", "", false,
 			Collections.emptyList(), false, false, System.lineSeparator());
 	public static final ParserTemplate MAIN_TEMPLATE = new ParserTemplate(new String[] {"int main() {", "\tasm volatile (" }, new String[] {"\t);", "\treturn 0;", "}" }, "\t\t\"",
 			false, false, "\\n\"", false, false, false, ";", "//", "", true, Collections.emptyList(), false, false, System.lineSeparator());
@@ -25,7 +25,31 @@ public class Parser {
 					new Replace("^(\\s*)([lL][oO][oO][pP])\\s*\\:(\\s*);(.*)$", "$1\t\t\"$2\\:\\\\n\\\"\n\t);\n}\n\nvoid loop() {\n\tasm volatile(\n$1\t\t\"$2\\:\\\\n\\\"$3//$4"),
 					new Replace("^(\\s*)([lL][oO][oO][pP])\\s*\\:(\\s*)([^;]+);(.*)$",
 							"$1\t\t\"$2\\:\\\\n\\\"\n\t);\n}\n\nvoid loop() {\n\tasm volatile(\n$1\t\t\"$2\\:\\\\n\\\"\n$3\t\t\"$4\\\\n\\\"//$5")),
-			false, false, System.lineSeparator());
+			false, false, System.lineSeparator());*/
+	public static final ParserTemplate EMPTY_TEMPLATE = new ParserTemplate(new String[0], new String[0], "", false, false, "", false, false, true, "", "", "", false,
+			Collections.emptyList(), false, false, System.lineSeparator(), false);
+	public static final ParserTemplate MAIN_TEMPLATE = new ParserTemplate(new String[] {"int main() {", "\tasm volatile (" }, new String[] {"\t);", "\treturn 0;", "}" }, "\t\t\"",
+			false, false, "\\n\"", false, false, false, ";", "//", "", true, Collections.emptyList(), false, false, System.lineSeparator(), false);
+	public static final ParserTemplate ARDUINO_TEMPLATE = new ParserTemplate(new String[] {"void setup() {", "\tasm volatile (" },
+			new String[] {"\t);", "}", "", "void loop() {}" }, "\t\t\"", false, false, "\\n\"", false, false, false, ";", "//", "", true, Collections.emptyList(), false, false,
+			System.lineSeparator(), false);
+	public static final ParserTemplate ARDUINO_TEMPLATE_WITH_EMPTY_ASM_LOOP = new ParserTemplate(new String[] {"void setup() {", "\tasm volatile (" },
+			new String[] {"\t);", "}", "", "void loop() {", "\tasm volatile (", "\t\t\"\\n\"", "\t);", "}" }, "\t\t\"", false, false, "\\n\"", false, false, false, ";", "//", "",
+			true, Collections.emptyList(), false, false, System.lineSeparator(), false);
+	public static final ParserTemplate ARDUINO_TEMPLATE_WITH_LOOP_REPLACE = new ParserTemplate(new String[] {"void setup() {", "\tasm volatile (" }, new String[] {"\t);", "}" },
+			"\t\t\"", false, false, "\\n\"", false, false, false, ";", "//", "", true,
+			Arrays.asList(
+					new Replace("^(\\s*)([lL][oO][oO][pP])\\s*\\:\\s*$", 
+								"$1\t\t\"$2\\:\\\\n\"\n\t);\n}\n\nvoid loop() {\n\tasm volatile(\n$1\t\t\"$2\\:\\\\n\""),
+					new Replace("^(\\s*)([lL][oO][oO][pP])\\s*\\:(\\s*)([^;]+)$",
+							"$1\t\t\"$2\\:\\\\n\\\"\n\t);\n}\n\nvoid loop() {\n\tasm volatile(\n$1\t\t\\\"$2\\:\\\\n\\\"\n$3\t\t\"$4\\\\n\\\""),
+					new Replace("^(\\s*)([lL][oO][oO][pP])\\s*\\:(\\s*);(.*)$",
+							"$1\t\t\"$2\\:\\\\n\\\"\n\t);\n}\n\nvoid loop() {\n\tasm volatile(\n$1\t\t\"$2\\:\\\\n\\\"$3//$4"),
+					new Replace("^(\\s*)([lL][oO][oO][pP])\\s*\\:(\\s*)([^;]+);(.*)$",
+							"$1\t\t\"$2\\:\\\\n\\\"\n\t);\n}\n\nvoid loop() {\n\tasm volatile(\n$1\t\t\"$2\\:\\\\n\\\"\n$3\t\t\"$4\\\\n\\\"//$5")
+			), false, false, System.lineSeparator(), false);
+	
+	
 	
 	private ParserTemplate properties;
 	
@@ -83,15 +107,18 @@ public class Parser {
 				}
 			}
 			if (properties.startAfterWhite) {
-				String newLine = line.stripLeading();
-				int dif = line.length() - newLine.length();
-				String whitespace = line.substring(0, dif);
-				line = line.substring(dif);
+				String whitespace;
+				int dif = 0;
+				{
+					char[] chars;
+					for (chars = line.toCharArray(); dif < chars.length; dif ++) {
+						if (chars[dif] > ' ') break;//' ' is the higest whitespace all below is a command (like CR, LF, TAB, ...)
+					}
+					whitespace = line.substring(0, dif);
+					line = line.substring(dif, chars.length);
+				}
 				print(output, whitespace);
 				print(output, properties.lineStart);
-				// compatibile with older versions:
-				line = newLine;
-				// compatible end2
 			} else print(output, properties.lineStart);
 			if ( !properties.supressCommentExtraction) {
 				int ci = line.indexOf(properties.asmCommentSymbol);
@@ -112,69 +139,6 @@ public class Parser {
 			if (properties.lineEndAlsoOnTailLines) print(output, properties.lineEnd);
 			println(output);
 		}
-	}
-	
-	
-	
-	public static class ParserTemplate {
-		
-		public final String[] headLines;
-		public final String[] tailLines;
-		public final String lineStart;
-		public final boolean lineStartAlsoOnHeadLines;
-		public final boolean lineStartAlsoOnTailLines;
-		public final String lineEnd;
-		public final boolean lineEndAlsoOnHeadLines;
-		public final boolean lineEndAlsoOnTailLines;
-		public final boolean supressCommentExtraction;
-		public final String asmCommentSymbol;
-		public final String parsedCommentSymbol;
-		public final String commentEndLine;
-		public final boolean startAfterWhite;
-		public final List <Replace> replaces;
-		public final boolean supressReplaces;
-		public final boolean continueAfterReplace;
-		public final String lineSeparator;
-		public Boolean explicitLineSep;
-		
-		
-		
-		public ParserTemplate(String[] headLines, String[] tailLines, String lineStart, boolean lineStartAlsoOnHeadLines, boolean lineStartAlsoOnTailLines, String lineEnd,
-				boolean lineEndAlsoOnHeadLines, boolean lineEndAlsoOnTailLines, boolean supressCommentExtraction, String asmCommentSymbol, String parsedCommendSymbol,
-				String commentEndLine, boolean startIgnoresWhite, List <Replace> replaces, boolean supressReplaces, boolean continueAfterReplace, String lineSeparator,
-				boolean explicitLineSep) {
-			this.headLines = headLines == null ? new String[0] : headLines.clone();
-			this.tailLines = tailLines == null ? new String[0] : tailLines.clone();
-			this.lineStart = lineStart == null ? "" : lineStart;
-			this.lineStartAlsoOnHeadLines = lineStartAlsoOnHeadLines;
-			this.lineStartAlsoOnTailLines = lineStartAlsoOnTailLines;
-			this.lineEnd = lineEnd == null ? "" : lineEnd;
-			this.lineEndAlsoOnHeadLines = lineEndAlsoOnHeadLines;
-			this.lineEndAlsoOnTailLines = lineEndAlsoOnTailLines;
-			this.supressCommentExtraction = supressCommentExtraction;
-			this.asmCommentSymbol = asmCommentSymbol == null ? "" : asmCommentSymbol;
-			this.parsedCommentSymbol = parsedCommendSymbol == null ? "" : parsedCommendSymbol;
-			this.commentEndLine = commentEndLine == null ? "" : commentEndLine;
-			this.startAfterWhite = startIgnoresWhite;
-			this.replaces = Collections.unmodifiableList(replaces == null ? Collections.emptyList() : new ArrayList <>(replaces));
-			this.supressReplaces = supressReplaces;
-			this.continueAfterReplace = continueAfterReplace;
-			this.lineSeparator = lineSeparator == null ? System.lineSeparator() : lineSeparator;
-			this.explicitLineSep = explicitLineSep;
-		}
-		
-	}
-	
-	public static class Replace {
-		
-		public final String regex;
-		public final String replacement;
-		
-		public Replace(String regex, String replace) {
-			this.regex = regex;
-			this.replacement = replace;
-		}
-		
 	}
 	
 }
