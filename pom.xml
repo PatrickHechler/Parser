@@ -10,7 +10,6 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
-    <!--
 	<dependencies>
  		<dependency>
 			<groupId>de.hechler.patrick.hilfen</groupId>
@@ -19,7 +18,6 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
-	-->
    <build>
         <plugins>
             <plugin>
@@ -36,7 +34,6 @@
     
     
     <repositories>
-    <!-- 
         <repository>
             <id>patmcsreleases</id>
             <url>http://patmcs.hechler.de:61269/repository/maven-releases/</url>
@@ -45,7 +42,6 @@
         	<id>patmcssnapshots</id>
         	<url>http://patmcs.hechler.de:61269/repository/maven-snapshots/</url>
       	</repository>
-     -->
         <repository>
         	<id>central</id>
         	<url>https://repo1.maven.org/maven2/</url>
