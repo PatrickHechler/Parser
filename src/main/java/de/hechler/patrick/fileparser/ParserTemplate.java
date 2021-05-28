@@ -23,7 +23,7 @@ public class ParserTemplate {
 	public final boolean supressReplaces;
 	public final boolean continueAfterReplace;
 	public final String lineSeparator;
-	public Boolean explicitLineSep;
+	public final Boolean explicitLineSep;
 	
 	
 	

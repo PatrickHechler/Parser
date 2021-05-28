@@ -21,19 +21,22 @@ import de.hechler.patrick.fileparser.gui.ParserGUI;
 public class Main {
 	
 	private static final String ASSEMBLER_POSTFIX = "asm";
-	private static final String ARDUINO_POSTFIX = "ino";
-	private static final String MAIN_POSTFIX = "c";
-	private static final String OTHER_POSTFIX = "txt";
+	private static final String ARDUINO_POSTFIX   = "ino";
+	private static final String MAIN_POSTFIX      = "c";
+	private static final String OTHER_POSTFIX     = "txt";
 	
 	
 	
-	private static Parser parser;
-	private static Scanner scan;
+	private static Parser      parser;
+	private static Scanner     scan;
 	private static PrintStream print;
-	private static boolean finishMsg;
+	private static boolean     finishMsg;
 	
 	public static void main(String[] args) {
-		if (args.length == 0) args = new ParserGUI().load().getArgs();
+		if (args.length == 0) {
+			new ParserGUI().load();
+			return;
+		}
 		long start = System.currentTimeMillis();
 		setup(args);
 		if (parser == null) exit("parser is not set", args);
@@ -73,13 +76,12 @@ public class Main {
 		out.println("<--noFinish> or <--nf>");
 		out.println("          to print no finish message after finishing with parsing");
 		out.println("<--silent> or <--s>");
-		out.println(
-				"          to print the parsed not to the generated target file (if no target is set it will be generated from the name of the source file, but only if silent is not set)");
+		out.println("          to print the parsed not to the generated target file (if no target is set it will be generated from the name of the source file, but only if silent is not set)");
 		out.println("<--print>");
 		out.println("          to print the parsed also to the default out");
 		out.println("<-print>");
 		out.println("          to print the parsed also to the default err");
-		out.println("<--ls> or <--lineSeparator> <CRLF> or <CR> or <LF>");
+		out.println("<--lsp> or <--lineSeparator> <CRLF> or <CR> or <LF>");
 		out.println("          sets the line separator to the param");
 		out.println("<-ep> or <-empty>");
 		out.println("          to use the Empty property as default");
@@ -440,17 +442,15 @@ public class Main {
 			exit("class -> " + e.getClass().getName() + "   msg -> " + e.getLocalizedMessage(), args);
 		}
 		try {
-			props = new ParserTemplate(headLines == null ? props.headLines : headLines, tailLines == null ? props.tailLines : tailLines,
-					lineStart == null ? props.lineStart : lineStart, lineStartAlsoOnHeadLines == null ? props.lineStartAlsoOnHeadLines : lineStartAlsoOnHeadLines,
-					lineStartAlsoOnTailLines == null ? props.lineStartAlsoOnTailLines : lineStartAlsoOnTailLines, lineEnd == null ? props.lineEnd : lineEnd,
-					lineEndAlsoOnHeadLines == null ? props.lineEndAlsoOnHeadLines : lineEndAlsoOnHeadLines,
-					lineEndAlsoOnTailLines == null ? props.lineEndAlsoOnTailLines : lineEndAlsoOnTailLines,
-					supressCommentExtraction == null ? props.supressCommentExtraction : supressCommentExtraction,
+			props = new ParserTemplate(headLines == null ? props.headLines : headLines, tailLines == null ? props.tailLines : tailLines, lineStart == null ? props.lineStart : lineStart,
+					lineStartAlsoOnHeadLines == null ? props.lineStartAlsoOnHeadLines : lineStartAlsoOnHeadLines, lineStartAlsoOnTailLines == null ? props.lineStartAlsoOnTailLines : lineStartAlsoOnTailLines,
+					lineEnd == null ? props.lineEnd : lineEnd, lineEndAlsoOnHeadLines == null ? props.lineEndAlsoOnHeadLines : lineEndAlsoOnHeadLines,
+					lineEndAlsoOnTailLines == null ? props.lineEndAlsoOnTailLines : lineEndAlsoOnTailLines, supressCommentExtraction == null ? props.supressCommentExtraction : supressCommentExtraction,
 					asmCommentSymbol == null ? props.asmCommentSymbol : asmCommentSymbol, parsedCommentSymbol == null ? props.parsedCommentSymbol : parsedCommentSymbol,
 					commentEndLine == null ? props.commentEndLine : commentEndLine, startAfterWhite == null ? props.startAfterWhite : startAfterWhite,
 					(replaces.isEmpty() ? (props == null ? Collections.emptyList() : props.replaces) : replaces), supressReplaces == null ? props.supressReplaces : supressReplaces,
-					continueAfterReplaces == null ? props.continueAfterReplace : continueAfterReplaces,
-					lineSep == null ? (props == null ? System.lineSeparator() : props.lineSeparator) : lineSep, explicitLineSep == null ? props.explicitLineSep : explicitLineSep);
+					continueAfterReplaces == null ? props.continueAfterReplace : continueAfterReplaces, lineSep == null ? (props == null ? System.lineSeparator() : props.lineSeparator) : lineSep,
+					explicitLineSep == null ? props.explicitLineSep : explicitLineSep);
 		} catch (NullPointerException e) {
 			StringBuilder build = new StringBuilder("i am missing some properties: [");
 			if (headLines == null) build.append("headLines, ");

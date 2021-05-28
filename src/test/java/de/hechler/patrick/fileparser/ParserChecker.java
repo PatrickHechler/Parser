@@ -6,7 +6,6 @@ import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
 
-import de.hechler.patrick.fileparser.*;
 import de.hechler.patrick.zeugs.check.*;
 import de.hechler.patrick.zeugs.check.anotations.*;
 

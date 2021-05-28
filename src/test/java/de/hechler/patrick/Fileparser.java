@@ -1,7 +1,5 @@
 package de.hechler.patrick;
 
-import java.util.Iterator;
-
 import de.hechler.patrick.fileparser.MAINChecker;
 import de.hechler.patrick.fileparser.ParserChecker;
 import de.hechler.patrick.zeugs.check.Checker;
