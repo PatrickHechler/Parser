@@ -16,8 +16,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
 
-import de.hechler.patrick.fileparser.gui.ParserGUI;
-
 public class Main {
 	
 	private static final String ASSEMBLER_POSTFIX = "asm";
@@ -128,7 +126,7 @@ public class Main {
 		out.println("<-els> or <-explicitLineSep> <true>/<1> or <false>/<0>");
 		out.println("          to set if the lines need a explicit line separator (<true>/<1>) or if it should be appanded after each line");
 		out.println("          if it is set <true>/<1> the lines will be read with a line separator");
-		out.println("<-scp> or <-supressCommentParsing> <true>/<1> or <false>/<0>");
+		out.println("<-sce> or <-supressCommentExtract> <true>/<1> or <false>/<0>");
 		out.println("          to tell the parser that Assembler comments (by default ';') should be placed after the endLine (but not after the lineSeparator or endCommentLine)");
 		out.println("<-parsedCommentSymbol> or <-pcs> [COMMENT_SYMBOL]");
 		out.println("          to set the parsed comment symbol to COMMENT_SYMBOL");
@@ -345,8 +343,8 @@ public class Main {
 				if (explicitLineSep != null) exit("supress Comment parsing is already set: " + explicitLineSep, args);
 				explicitLineSep = strToBool(args[i], args);
 				break;
-			case "-supresscommentparsing":
-			case "-scp":
+			case "-supresscommentextract":
+			case "-sce":
 				i ++ ;
 				if (i >= args.length) exit("need more arguments on option <-supresscommentparsing>", args);
 				if (supressCommentExtraction != null) exit("supress Comment parsing is already set: " + supressCommentExtraction, args);
@@ -446,7 +444,7 @@ public class Main {
 					lineStartAlsoOnHeadLines == null ? props.lineStartAlsoOnHeadLines : lineStartAlsoOnHeadLines, lineStartAlsoOnTailLines == null ? props.lineStartAlsoOnTailLines : lineStartAlsoOnTailLines,
 					lineEnd == null ? props.lineEnd : lineEnd, lineEndAlsoOnHeadLines == null ? props.lineEndAlsoOnHeadLines : lineEndAlsoOnHeadLines,
 					lineEndAlsoOnTailLines == null ? props.lineEndAlsoOnTailLines : lineEndAlsoOnTailLines, supressCommentExtraction == null ? props.supressCommentExtraction : supressCommentExtraction,
-					asmCommentSymbol == null ? props.asmCommentSymbol : asmCommentSymbol, parsedCommentSymbol == null ? props.parsedCommentSymbol : parsedCommentSymbol,
+					asmCommentSymbol == null ? props.unparsedCommentSymbol : asmCommentSymbol, parsedCommentSymbol == null ? props.parsedCommentSymbol : parsedCommentSymbol,
 					commentEndLine == null ? props.commentEndLine : commentEndLine, startAfterWhite == null ? props.startAfterWhite : startAfterWhite,
 					(replaces.isEmpty() ? (props == null ? Collections.emptyList() : props.replaces) : replaces), supressReplaces == null ? props.supressReplaces : supressReplaces,
 					continueAfterReplaces == null ? props.continueAfterReplace : continueAfterReplaces, lineSep == null ? (props == null ? System.lineSeparator() : props.lineSeparator) : lineSep,

@@ -1,4 +1,4 @@
-package de.hechler.patrick.fileparser.gui;
+package de.hechler.patrick.fileparser;
 
 import java.awt.Component;
 import java.awt.Rectangle;
@@ -11,7 +11,6 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,21 +25,17 @@ import java.nio.charset.IllegalCharsetNameException;
 import java.nio.charset.StandardCharsets;
 import java.nio.charset.UnsupportedCharsetException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Random;
 
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import javax.swing.filechooser.FileFilter;
-
-import de.hechler.patrick.fileparser.Main;
-import de.hechler.patrick.fileparser.Replace;
 
 public class ParserGUI extends JFrame {
 
@@ -162,7 +157,7 @@ public class ParserGUI extends JFrame {
 			int returnVal = argsFC.showOpenDialog(this);
 			if (returnVal == JFileChooser.APPROVE_OPTION) {
 				try {
-					load(argsFC.getSelectedFile());
+					Serializer.load(this, argsFC.getSelectedFile());
 				} catch (IOException e1) {
 					e1.printStackTrace();
 				}
@@ -170,10 +165,10 @@ public class ParserGUI extends JFrame {
 		});
 		final JButton saveArgsButton = new JButton("save");
 		saveArgsButton.addActionListener(e -> {
-			int returnVal = argsFC.showOpenDialog(this);
+			int returnVal = argsFC.showSaveDialog(this);
 			if (returnVal == JFileChooser.APPROVE_OPTION) {
 				try {
-					save(argsFC.getSelectedFile());
+					Serializer.save(this, argsFC.getSelectedFile(), false);
 				} catch (IOException e1) {
 					e1.printStackTrace();
 				}
@@ -876,239 +871,9 @@ public class ParserGUI extends JFrame {
 		explicitLineSep = null;
 	}
 
-	private void load(File loadFile) throws IOException {
-//		OutputStream out = new FileOutputStream(saveFile);
-//		Field[] fields = getClass().getDeclaredFields();
-//		for (int i = 0; i < fields.length; i++) {
-//			int mod = fields[i].getModifiers();
-//			if ((mod & Modifier.TRANSIENT) != 0)
-//				continue;// transient say do not serialize this
-//			if ((mod & Modifier.FINAL) != 0)
-//				continue;// can't set finals by loading anyway
-//			save(fields[i], out);
-//		}
-		Class<? extends ParserGUI> myClass = getClass();
-		InputStream in = new FileInputStream(loadFile);
-		while (true) {
-			try {
-				String name = readString(in);
-				Field field = myClass.getField(name);
-				byte[] bytes = new byte[Integer.BYTES];
-				in.read(bytes);
-				int clsid = byteArrToInt(bytes, 0);
-				switch (clsid) {
-				case 1:
-//				if (type == Boolean.class) {
-//					out.write(1);
-//					boolean bool = (boolean) (Boolean) val;
-//					out.write(bool ? 1 : 0);
-					int val = in.read();
-					if (val != 1 && val != 0)
-						throw new AssertionError("expected to read 0 or 1, but got: " + val);
-					try {
-						field.setBoolean(this, val == 1);
-					} catch (IllegalArgumentException e) {
-						e.printStackTrace();
-						throw new InternalError("illegal argument: field{'" + field + "'}.setBoolean(this{'" + this
-								+ "'}, val == 1 {" + val + " == 1})", e);
-					} catch (IllegalAccessException e) {
-						e.printStackTrace();
-						throw new InternalError(
-								"security manager denied the permission to acces ma own field: " + field, e);
-					}
-					break;
-				case 2://TODO continue here
-					break;
-				case 3:
-					break;
-				case 4:
-					break;
-				case 5:
-					break;
-				case 6:
-					break;
-				case 7:
-					break;
-				case 8:
-					break;
-				case 9:
-					break;
-				case 10:
-					break;
-				default:
-					throw new AssertionError("unknown class identifier: " + clsid);
-				}
-
-				// TODO Auto-generated method stub
-				throw new RuntimeException("noch nicht gemacht!");
-			} catch (NoSuchFieldException e) {
-				e.printStackTrace();
-				throw new InternalError("does not know the loaded field with name: ", e);
-			} catch (SecurityException e) {
-				e.printStackTrace();
-				throw new InternalError("the permission to acces my field was denied by the security manager!", e);
-			}
-		}
-	}
-
-	private void save(File saveFile) throws IOException {
-		OutputStream out = new FileOutputStream(saveFile);
-		Field[] fields = getClass().getDeclaredFields();
-		for (int i = 0; i < fields.length; i++) {
-			int mod = fields[i].getModifiers();
-			if ((mod & Modifier.TRANSIENT) != 0)
-				continue;// transient say do not serialize this
-			if ((mod & Modifier.FINAL) != 0)
-				continue;// can't set finals by loading anyway
-			save(fields[i], out);
-		}
-	}
-
-	private void save(Field field, OutputStream out) throws IOException {
-		{// write name
-			String name = field.getName();
-			writeString(out, name);
-		}
-		{// write type
-			Class<?> type = field.getType();
-			Object val;
-			try {
-				val = field.get(this);
-			} catch (IllegalArgumentException e) {
-				throw new InternalError("i do not know anything about this: " + e.getMessage(), e);
-			} catch (IllegalAccessException e) {
-				throw new InternalError("can not acces on my own fields: " + e.getMessage(), e);
-			}
-			if (type.isPrimitive()) {
-				if (type == Boolean.class) {
-					out.write(1);
-					boolean bool = (boolean) (Boolean) val;
-					out.write(bool ? 1 : 0);
-				} else if (type == Integer.class) {// other primitive types are not used, but supported
-					out.write(2);
-					out.write(intToByteArr((int) (Integer) val));
-				} else if (type == Long.class) {
-					out.write(3);
-					byte[] bytes = new byte[Long.BYTES];
-					intToByteArr(bytes, 0, (int) ((long) (Long) val) << 0);
-					intToByteArr(bytes, Integer.BYTES, (int) ((long) (Long) val) << 32);
-					out.write(bytes);
-				} else if (type == Byte.class) {
-					out.write(4);
-					out.write(((int) (byte) (Byte) val) & 0xFF);
-				} else if (type == Short.class) {
-					out.write(5);
-					short s = (short) (Short) val;
-					byte[] bytes = new byte[2];
-					bytes[0] = (byte) (s & 0xFF);
-					bytes[1] = (byte) ((s & 0xFF) << 8);
-					out.write(bytes);
-				} else if (type == Character.class) {
-					out.write(6);
-					char c = (char) (Character) val;
-					ByteBuffer bb = StandardCharsets.UTF_16LE.encode("" + c);
-					out.write(bb.array());
-				} else
-					try {
-						throw new InternalError("unknown primitive type: " + type.getName() + " of field: "
-								+ field.getName() + " with value: " + field.get(this));
-					} catch (IllegalArgumentException | IllegalAccessException e) {
-						e.printStackTrace();
-						throw new InternalError("unknown primitive type: " + type.getName() + " of field: "
-								+ field.getName() + " with value: errormsg: " + e.getMessage() + " localmsg: "
-								+ e.getLocalizedMessage(), e);
-					}
-			} else {
-				if (type == String.class) {
-					out.write(7);
-					String name = (String) val;
-					writeString(out, name);
-				} else if (type == String[].class) {
-					out.write(8);
-					String[] strs = (String[]) val;
-					out.write(intToByteArr(strs.length));
-					for (int i = 0; i < strs.length; i++) {
-						writeString(out, strs[i]);
-					}
-				} else if (val instanceof List) {
-					try {
-						out.write(9);
-						@SuppressWarnings("unchecked")
-						List<?> list = (List<Replace>) (List<?>) val;// only occurence of a list variable
-						Replace[] reps = list.toArray(new Replace[list.size()]);
-						out.write(intToByteArr(reps.length));
-						for (int i = 0; i < reps.length; i++) {
-							writeString(out, reps[i].regex);
-							writeString(out, reps[i].replacement);
-						}
-					} catch (ClassCastException cce) {
-						System.err.println("WARN: unkown list type: " + val);
-						System.err.println("LOG: list class: " + val.getClass());
-						out.write(10);
-						List<?> list = (List<?>) val;
-						int size = list.size();
-						for (int i = 0; i < size; i++) {
-							Object obj = list.get(i);
-							String zw = obj.getClass().getName();
-							writeString(out, zw);
-							if (obj instanceof Serializable) {
-								System.err.println("LOG: unknown object is instance of Serializable");
-							} else {
-								System.err.println("WARN: unknown object is no instance of Serializable");
-							}
-							ObjectOutputStream oos = new ObjectOutputStream(out);
-							oos.writeObject(val);
-						}
-					}
-				}
-			}
-		}
-	}
-
-	private String readString(InputStream in) throws IOException {
-//		byte[] zw = write.getBytes(StandardCharsets.UTF_8);
-//		byte[] bytes = new byte[zw.length + Integer.BYTES];
-//		intToByteArr(bytes, 0, bytes.length);
-//		System.arraycopy(zw, 0, bytes, Integer.BYTES, zw.length);
-//		out.write(bytes);
-		byte[] bytes = new byte[Integer.BYTES];
-		in.read(bytes);
-		int len = byteArrToInt(bytes, 0);
-		bytes = new byte[len];
-		in.read(bytes);
-		return new String(bytes, StandardCharsets.UTF_8);
-	}
-
-	private void writeString(OutputStream out, String write) throws IOException {
-		byte[] zw = write.getBytes(StandardCharsets.UTF_8);
-		byte[] bytes = new byte[zw.length + Integer.BYTES];
-		intToByteArr(bytes, 0, bytes.length);
-		System.arraycopy(zw, 0, bytes, Integer.BYTES, zw.length);
-		out.write(bytes);
-	}
-
-	private static int byteArrToInt(byte[] bytes, int off) {
-		int ret = 0;
-		for (int i = 0; i < Integer.BYTES; i++) {
-			ret |= (((int) bytes[off + i]) & 0xFF) << (i << 3);
-		}
-		return ret;
-	}
-
-	private static void intToByteArr(byte[] bytes, int off, int val) {
-		for (int i = 0; i < Integer.BYTES; i++) {
-			bytes[i + off] = (byte) (val >> (i << 3));
-		}
-	}
-
-	private static byte[] intToByteArr(int val) {
-		byte[] bytes = new byte[Integer.BYTES];
-		intToByteArr(bytes, 0, val);
-		return bytes;
-	}
-
 	private String[] generateArgs() {
 		// TODO Auto-generated method stub
+		JOptionPane.showMessageDialog(null, "can not genarates args, reason: zu faul");
 		throw new RuntimeException("noch nicht gemacht!");
 	}
 

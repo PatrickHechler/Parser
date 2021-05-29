@@ -15,7 +15,7 @@ public class ParserTemplate {
 	public final boolean lineEndAlsoOnHeadLines;
 	public final boolean lineEndAlsoOnTailLines;
 	public final boolean supressCommentExtraction;
-	public final String asmCommentSymbol;
+	public final String unparsedCommentSymbol;
 	public final String parsedCommentSymbol;
 	public final String commentEndLine;
 	public final boolean startAfterWhite;
@@ -40,7 +40,7 @@ public class ParserTemplate {
 		this.lineEndAlsoOnHeadLines = lineEndAlsoOnHeadLines;
 		this.lineEndAlsoOnTailLines = lineEndAlsoOnTailLines;
 		this.supressCommentExtraction = supressCommentExtraction;
-		this.asmCommentSymbol = asmCommentSymbol == null ? "" : asmCommentSymbol;
+		this.unparsedCommentSymbol = asmCommentSymbol == null ? "" : asmCommentSymbol;
 		this.parsedCommentSymbol = parsedCommendSymbol == null ? "" : parsedCommendSymbol;
 		this.commentEndLine = commentEndLine == null ? "" : commentEndLine;
 		this.startAfterWhite = startIgnoresWhite;
