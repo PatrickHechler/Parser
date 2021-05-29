@@ -10,19 +10,9 @@ import java.awt.event.HierarchyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.ObjectOutputStream;
-import java.io.OutputStream;
-import java.io.Serializable;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.IllegalCharsetNameException;
-import java.nio.charset.StandardCharsets;
 import java.nio.charset.UnsupportedCharsetException;
 import java.util.ArrayList;
 import java.util.List;
@@ -75,11 +65,12 @@ public class ParserGUI extends JFrame {
 	private Boolean supressCommentExtraction = null;
 	private Boolean startAfterWhite = null;
 	private String lineSep = null;
+	@SerializerOptions(saveLoadWithGetSetOfIndexAndGetSize = {"size", "", "get", "" , "de.hechler.patrick.fileparser.ParserGUI", "addListElement", "" , "" })
 	private List<Replace> replaces = new ArrayList<>();
 	private Boolean continueAfterReplaces = null;
 	private Boolean supressReplaces = null;
 	private Boolean explicitLineSep = null;
-
+	
 	public ParserGUI load() {
 		setTitle("ENTER ARGS");
 		setLayout(null);
@@ -877,4 +868,9 @@ public class ParserGUI extends JFrame {
 		throw new RuntimeException("noch nicht gemacht!");
 	}
 
+	
+	public static void addListElement(Object list, int index, Object set) {
+		
+	}
+	
 }
