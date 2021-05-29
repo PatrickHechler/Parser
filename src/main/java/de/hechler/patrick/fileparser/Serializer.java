@@ -7,12 +7,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
-import java.io.Serializable;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -20,26 +21,31 @@ import java.util.Set;
 
 public class Serializer {
 	
-	private static final int OBJECT_UNKNOWN    = 19;
-	private static final int CHAR_ARRAY        = 18;
-	private static final int BOOLEAN_ARRAY     = 17;
-	private static final int FLOAT_ARRAY       = 16;
-	private static final int DOUBLE_ARRAY      = 15;
-	private static final int SHORT_ARRAY       = 14;
-	private static final int LONG_ARRAY        = 13;
-	private static final int BYTE_ARRAY        = 12;
-	private static final int INT_ARRAY         = 11;
-	private static final int OBJECT_ARRAY      = 10;
-	private static final int OBJECT_STRING     = 9;
-	private static final int PRIMITIVE_SHORT   = 8;
-	private static final int PRIMITIVE_CHAR    = 7;
-	private static final int PRIMITIVE_BYTE    = 6;
-	private static final int PRIMITIVE_LONG    = 5;
-	private static final int PRIMITIVE_INT     = 4;
-	private static final int PRIMITIVE_DOUBLE  = 3;
-	private static final int PRIMITIVE_FLOAT   = 2;
-	private static final int PRIMITIVE_BOOLEAN = 1;
-	private static final int NULL              = -1;
+	private static final int OBJECT_COSTUM_NO_STEP_B     = 23;
+	private static final int OBJECT_COSTUM_START_STEP_B  = 22;
+	private static final int OBJECT_COSTUM_FINISH_STEP_A = 21;
+	private static final int OBJECT_COSTUM               = 20;
+	private static final int OBJECT_UNKNOWN              = 19;
+	private static final int CHAR_ARRAY                  = 18;
+	private static final int BOOLEAN_ARRAY               = 17;
+	private static final int FLOAT_ARRAY                 = 16;
+	private static final int DOUBLE_ARRAY                = 15;
+	private static final int SHORT_ARRAY                 = 14;
+	private static final int LONG_ARRAY                  = 13;
+	private static final int BYTE_ARRAY                  = 12;
+	private static final int INT_ARRAY                   = 11;
+	private static final int OBJECT_ARRAY                = 10;
+	private static final int OBJECT_STRING               = 9;
+	private static final int PRIMITIVE_SHORT             = 8;
+	private static final int PRIMITIVE_CHAR              = 7;
+	private static final int PRIMITIVE_BYTE              = 6;
+	private static final int PRIMITIVE_LONG              = 5;
+	private static final int PRIMITIVE_INT               = 4;
+	private static final int PRIMITIVE_DOUBLE            = 3;
+	private static final int PRIMITIVE_FLOAT             = 2;
+	private static final int PRIMITIVE_BOOLEAN           = 1;
+	private static final int NULL                        = -1;
+	private static final int FINISH_VALUE                = -2;
 	
 	public static void load(Object obj, File loadFile) throws IOException {
 		// OutputStream out = new FileOutputStream(saveFile);
@@ -57,7 +63,7 @@ public class Serializer {
 		while (true) {
 			try {
 				String name = readString(in);
-				Field field = myClass.getField(name);
+				Field field = myClass.getDeclaredField(name);
 				byte[] bytes = new byte[Integer.BYTES];
 				in.read(bytes);
 				int identy = byteArrToInt(bytes, 0);
@@ -65,7 +71,7 @@ public class Serializer {
 				case NULL:
 					field.set(obj, null);
 					break;
-				case 1:
+				case PRIMITIVE_BOOLEAN:
 					// if (type == Boolean.Type) {
 					// out.write(1);
 					// boolean bool = (boolean) (Boolean) val;
@@ -76,23 +82,43 @@ public class Serializer {
 					}
 					field.setBoolean(obj, val == 1);
 					break;
-				case 2:// TODO continue here
+				case PRIMITIVE_BYTE:// TODO continue here
 					break;
-				case 3:
+				case PRIMITIVE_CHAR:
 					break;
-				case 4:
+				case PRIMITIVE_DOUBLE:
 					break;
-				case 5:
+				case PRIMITIVE_FLOAT:
 					break;
-				case 6:
+				case PRIMITIVE_INT:
 					break;
-				case 7:
+				case PRIMITIVE_LONG:
 					break;
-				case 8:
+				case PRIMITIVE_SHORT:
 					break;
-				case 9:
+				case BOOLEAN_ARRAY:
 					break;
-				case 10:
+				case BYTE_ARRAY:
+					break;
+				case CHAR_ARRAY:
+					break;
+				case DOUBLE_ARRAY:
+					break;
+				case FLOAT_ARRAY:
+					break;
+				case INT_ARRAY:
+					break;
+				case LONG_ARRAY:
+					break;
+				case SHORT_ARRAY:
+					break;
+				case OBJECT_ARRAY:
+					break;
+				case OBJECT_STRING:
+					break;
+				case OBJECT_UNKNOWN:
+					break;
+				case OBJECT_COSTUM:
 					break;
 				default:
 					throw new AssertionError("unknown identifier: " + identy);
@@ -125,22 +151,33 @@ public class Serializer {
 				if ( (mod & Modifier.TRANSIENT) != 0) continue;// transient say do not serialize this
 				if ( (mod & Modifier.FINAL) != 0) continue;// can't set finals by loading anyway
 				if ( !saveStatic && (mod & Modifier.STATIC) != 0) continue;// can't set finals by loading anyway
-				save(obj, fields[i], out);
+				save(obj, fields[i], out, saveStatic);
 			}
 		}
 	}
 	
-	private static void save(Object obj, Field field, ObjectOutputStream out) throws IOException {
+	public static void save(Object obj, ObjectOutputStream out, boolean saveStatic) throws IOException {
+		Field[] fields = obj.getClass().getDeclaredFields();
+		Field.setAccessible(fields, true);
+		for (int i = 0; i < fields.length; i ++ ) {
+			int mod = fields[i].getModifiers();
+			if ( (mod & Modifier.TRANSIENT) != 0) continue;// transient say do not serialize this
+			if ( (mod & Modifier.FINAL) != 0) continue;// can't set finals by loading anyway
+			if ( !saveStatic && (mod & Modifier.STATIC) != 0) continue;// can't set finals by loading anyway
+			save(obj, fields[i], out, saveStatic);
+		}
+	}
+	
+	private static void save(Object obj, Field field, ObjectOutputStream out, boolean saveStatic) throws IOException {
 		{// write name
 			String name = field.getName();
 			writeString(out, name);
 		}
 		{// write value
 			try {
-				Class <?> type = field.getType();
 				Object val = field.get(obj);
 				Map <Class <?>, Options> opts = Options.create(field.getAnnotation(SerializerOptions.class));
-				writeValue(type, val, out, opts);
+				writeValue(val, out, opts, saveStatic);
 			} catch (IllegalArgumentException e) {
 				throw new InternalError("i do not know anything about this: " + e.getMessage(), e);
 			} catch (IllegalAccessException e) {
@@ -149,8 +186,22 @@ public class Serializer {
 		}
 	}
 	
+	public static void main(String[] args) throws Throwable {
+		ParserGUI p = new ParserGUI();
+		Class <? extends ParserGUI> cls = p.getClass();
+		Field field = cls.getDeclaredField("replaces");
+		SerializerOptions so = field.getAnnotation(SerializerOptions.class);
+		Options.create(so).forEach((c, o) -> {
+			System.out.println(c);
+			System.out.println("   save:    " + o.save);
+			System.out.println("   get:     " + o.get);
+			System.out.println("   set:     " + o.set);
+			System.out.println("   size:    " + o.size);
+			System.out.println("   setSize: " + o.setSize);
+		});
+	}
+	
 	private static class Options {
-		
 		
 		private Options() {
 		}
@@ -163,12 +214,12 @@ public class Serializer {
 		private Method set     = null;
 		
 		public static Map <Class <?>, Options> create(SerializerOptions serialOpts) {
-			if (serialOpts == null) return null;
+			if (serialOpts == null) return Collections.emptyMap();
 			Map <Class <?>, Options> opts = new HashMap <Class <?>, Serializer.Options>();
 			String[] strs = serialOpts.saveFieldNames();
 			Class <?> cls = null;
 			Options opt = null;
-			for (int i = 0; true; i ++ ) {
+			for (int i = 0; strs.length > 0; i ++ ) {
 				if (cls == null) {
 					try {
 						cls = Class.forName(strs[i]);
@@ -184,7 +235,7 @@ public class Serializer {
 					if (strs.length == i + 1) break;
 				} else {
 					try {
-						Field f = cls.getField(strs[i]);
+						Field f = cls.getDeclaredField(strs[i]);
 						opt.save.add(f);
 					} catch (NoSuchFieldException | SecurityException e) {
 						e.printStackTrace();
@@ -193,11 +244,12 @@ public class Serializer {
 				}
 			}
 			strs = serialOpts.saveLoadWithGetSetOfIndexAndGetSize();
-			cls = null;
-			for (int i = 0; true; i ++ ) {
+			for (int i = 0; strs.length > 0; i ++ ) {
 				try {
 					cls = Class.forName(strs[i]);
-					if ( !opts.containsKey(cls)) opts.put(cls, new Options());// opts could got this class key already from saveFieldNames
+					if ( !opts.containsKey(cls)) {// opts could got this class key already from saveFieldNames
+						opts.put(cls, new Options());
+					}
 					opt = opts.get(cls);
 					if (opt.get != null) throw new AssertionError("opt.get != null opt.get=" + opt.get);
 					if (opt.set != null) throw new AssertionError("opt.set != null opt.set=" + opt.set);
@@ -209,12 +261,12 @@ public class Serializer {
 					// the first part of a selection contains a method to get a int-size.
 					Method met;
 					if (strs[i + 1].isEmpty()) {
-						met = cls.getMethod(strs[i], Integer.TYPE);
+						met = cls.getDeclaredMethod(strs[i]);
 					} else {
 						Class <?> zw = cls;// to generate the right message if an error occurs by calling getMethod
 						cls = Class.forName(strs[i]);
 						i ++ ;
-						met = cls.getMethod(strs[i], cls, Integer.TYPE);
+						met = cls.getDeclaredMethod(strs[i], zw);
 						cls = zw;// rewrite cls
 					}
 					opt.size = met;
@@ -223,30 +275,30 @@ public class Serializer {
 					i ++ ;
 					// the second part of a selection contains a method to get a element of a zero based index.
 					if (strs[i + 1].isEmpty()) {
-						met = cls.getMethod(strs[i]);
+						met = cls.getDeclaredMethod(strs[i], Integer.TYPE);
 					} else {
 						Class <?> zw = cls;// to generate the right message if an error occurs by calling getMethod
 						cls = Class.forName(strs[i]);
 						i ++ ;
-						met = cls.getMethod(strs[i]);
+						met = cls.getDeclaredMethod(strs[i], zw, Integer.TYPE);
 						cls = zw;// rewrite cls
 					}
-					opt.set = met;
+					opt.get = met;
 					i ++ ;
 					if ( !strs[i].isEmpty()) throw new AssertionError("there was no empty string, to end the part: " + strs[i]);
 					i ++ ;
 					
 					// the third part of a selection contains a method to set a element of a zero based int and the java.lang.Object-element to overwrite as params (first the index and then the
 					if (strs[i + 1].isEmpty()) {
-						met = cls.getMethod(strs[i]);
+						met = cls.getDeclaredMethod(strs[i], Integer.TYPE, Object.class);
 					} else {
 						Class <?> zw = cls;// to generate the right message if an error occurs by calling getMethod
 						cls = Class.forName(strs[i]);
 						i ++ ;
-						met = cls.getMethod(strs[i]);
+						met = cls.getDeclaredMethod(strs[i], zw, Integer.TYPE, Object.class);
 						cls = zw;// rewrite cls
 					}
-					opt.size = met;
+					opt.set = met;
 					i ++ ;
 					if ( !strs[i].isEmpty()) throw new AssertionError("there was no empty string, to end the part: " + strs[i]);
 					i ++ ;
@@ -254,14 +306,14 @@ public class Serializer {
 					// the fourth part of a selection is optional and contains a method to set the size by a int-number.
 					if (strs[i].isEmpty()) {// optional
 						met = null;
-						i -- ;// to read the empty string again
+						i -= 2;// to read the empty string again
 					} else if (strs[i + 1].isEmpty()) {
-						met = cls.getMethod(strs[i]);
+						met = cls.getDeclaredMethod(strs[i], Integer.TYPE);
 					} else {
 						Class <?> zw = cls;// to generate the right message if an error occurs by calling getMethod
 						cls = Class.forName(strs[i]);
 						i ++ ;
-						met = cls.getMethod(strs[i]);
+						met = cls.getDeclaredMethod(strs[i], zw, Integer.TYPE);
 						cls = zw;// rewrite cls
 					}
 					opt.setSize = met;
@@ -289,8 +341,11 @@ public class Serializer {
 		
 	}
 	
-	private static void writeValue(Class <?> type, Object val, ObjectOutputStream out, Map <Class <?>, Options> opts) throws InternalError, IOException {
-		{// write value
+	private static void writeValue(Object val, ObjectOutputStream out, Map <Class <?>, Options> opts, boolean saveStatic) throws InternalError, IOException {
+		if (val == null) {
+			out.write(NULL);
+		} else {// write value
+			Class <?> type = val.getClass();
 			if (type.isPrimitive()) {
 				if (type == Boolean.TYPE) {
 					out.write(PRIMITIVE_BOOLEAN);
@@ -341,9 +396,7 @@ public class Serializer {
 					throw new InternalError("unknown primitive type: " + type.getName() + " with value: " + val);
 				}
 			} else {
-				if (val == null) {
-					out.write(NULL);
-				} else if (type == String.class) {
+				if (type == String.class) {
 					out.write(OBJECT_STRING);
 					String str = (String) val;
 					writeString(out, str);
@@ -473,22 +526,55 @@ public class Serializer {
 						writeString(out, objs.getClass().getName());// first write name (because the value class can be a sub class of the type)
 						out.write(intToByteArr(objs.length));
 						for (int i = 0; i < objs.length; i ++ ) {
-							writeValue(objs[i].getClass(), objs[i], out, opts);
+							writeValue(objs[i], out, opts, saveStatic);
 						}
 					}
-				} else if (opts != null) {
-					// TODO do
-					
 				} else {
-					out.write(OBJECT_UNKNOWN);
-					System.err.println("WARN: do not know how to serialize this, i will use the objectOutputStream: " + val.getClass().getName() + " val: " + val);
-					if ( ! (val instanceof Serializable)) {
-						System.err.println("WARN: val is no instance of serializable: " + val.getClass().getName() + " val: " + val);
+					if (opts != null && opts.containsKey(type)) {
+						out.write(OBJECT_COSTUM);
+						Options options = opts.get(type);
+						out.write(intToByteArr(options.save.size()));
+						for (Field save : options.save) {
+							save(val, save, out, saveStatic);
+						}
+						out.write(OBJECT_COSTUM_FINISH_STEP_A);
+						if (options.size != null) {
+							out.write(OBJECT_COSTUM_START_STEP_B);
+							Method met = options.size;
+							Object[] args = new Object[0];
+							try {
+								int size = (int) met.invoke(val, args);
+								out.write(intToByteArr(size));
+								args = new Object[1];
+								met = options.get;
+								for (int i = 0; i < size; i ++ ) {
+									args[0] = i;
+									Object zw = met.invoke(out, args);
+									writeValue(zw, out, opts, saveStatic);
+								}
+							} catch (IllegalAccessException e) {
+								e.printStackTrace();
+								throw new AssertionError("i do not have the permission to call the method: '" + met + "' obj.cls: '" + val.getClass() + "' obj: '" + val + "' msg: '" + e.getMessage() + "'", e);
+							} catch (IllegalArgumentException e) {
+								e.printStackTrace();
+								throw new InternalError("that can't be happening to me! illegal args for methed: '" + met + "' args: '" + Arrays.deepToString(args) + "' msg: '" + e.getMessage() + "'", e);
+							} catch (InvocationTargetException e) {
+								e.printStackTrace();
+								System.err.println();
+								e.getCause().printStackTrace();
+								throw new AssertionError("there was an error inside of the methodcall: '" + met + "'", e.getCause());
+							}
+						} else {
+							out.write(OBJECT_COSTUM_NO_STEP_B);
+						}
+					} else {
+						out.write(OBJECT_UNKNOWN);
+						save(type, out, saveStatic);
 					}
-					out.writeObject(val);
 				}
 			}
 		}
+		out.write(FINISH_VALUE);
 	}
 	
 	private static String readString(InputStream in) throws IOException {

@@ -11,10 +11,14 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.nio.charset.Charset;
 import java.nio.charset.IllegalCharsetNameException;
 import java.nio.charset.UnsupportedCharsetException;
+import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 
 import javax.swing.JButton;
@@ -28,48 +32,74 @@ import javax.swing.JTextPane;
 import javax.swing.filechooser.FileFilter;
 
 public class ParserGUI extends JFrame {
-
+	
 	/** UID */
-	private static final transient long serialVersionUID = 4993689297474827609L;
-
-	private static final transient int VOID = 10;
-	private static final transient int FIRST_X = 200;
-	private static final transient int SECOND_X = 400;
-
-	private static final transient int Y = 20;
-	private static final transient int LINE = Y + VOID;
-
+	private static final long serialVersionUID = 4993689297474827609L;
+	
+	private static final int VOID     = 10;
+	private static final int FIRST_X  = 200;
+	private static final int SECOND_X = 400;
+	
+	private static final int Y    = 20;
+	private static final int LINE = Y + VOID;
+	
 	public ParserGUI() {
 	}
-
-	private boolean noFinish = true;
-	private String template = null;
-	private String[] headLines = null;
-	private String[] tailLines = null;
-	private String lineStart = null;
-	private String lineEnd = null;
-	private Boolean lineEndAlsoOnTailLines = null;
-	private Boolean lineEndAlsoOnHeadLines = null;
-	private Boolean lineStartAlsoOnTailLines = null;
-	private Boolean lineStartAlsoOnHeadLines = null;
-	private boolean silent = false;
-	private boolean out = false;
-	private boolean err = false;
-	private String src = null;
-	private String dest = null;
-	private boolean forceOverrde = false;
-	private String charset = null;
-	private String asmCommentSymbol = null;
-	private String parsedCommentSymbol = null;
-	private String commentEndLine = null;
-	private Boolean supressCommentExtraction = null;
-	private Boolean startAfterWhite = null;
-	private String lineSep = null;
-	@SerializerOptions(saveLoadWithGetSetOfIndexAndGetSize = {"size", "", "get", "" , "de.hechler.patrick.fileparser.ParserGUI", "addListElement", "" , "" })
-	private List<Replace> replaces = new ArrayList<>();
-	private Boolean continueAfterReplaces = null;
-	private Boolean supressReplaces = null;
-	private Boolean explicitLineSep = null;
+	
+	@Arg("--noFinish")
+	private boolean   noFinish                 = true;
+	@Arg("")
+	private String    template                 = null;
+	@Arg("-headLines")
+	private String[]  headLines                = null;
+	@Arg("-tailLines")
+	private String[]  tailLines                = null;
+	@Arg("-lineStart")
+	private String    lineStart                = null;
+	@Arg("-lineEnd")
+	private String    lineEnd                  = null;
+	@Arg("-endTail")
+	private Boolean   lineEndAlsoOnTailLines   = null;
+	@Arg("-endHead")
+	private Boolean   lineEndAlsoOnHeadLines   = null;
+	@Arg("-startHead")
+	private Boolean   lineStartAlsoOnTailLines = null;
+	@Arg("-startTail")
+	private Boolean   lineStartAlsoOnHeadLines = null;
+	@Arg("--silent")
+	private boolean   silent                   = false;
+	@Arg("--print")
+	private boolean   out                      = false;
+	@Arg("-print")
+	private boolean   err                      = false;
+	@Arg("-src")
+	private String    src                      = null;
+	@Arg("-target")
+	private String    dest                     = null;
+	@Arg("--forceOverride")
+	private boolean   forceOverrde             = false;
+	@Arg("--charset")
+	private String    charset                  = null;
+	@Arg("-asmCommentSymbol")
+	private String    asmCommentSymbol         = null;
+	@Arg("-parsedCommentSymbol")
+	private String    parsedCommentSymbol      = null;
+	@Arg("-commentEndLine")
+	private String    commentEndLine           = null;
+	@Arg("-supressCommentExtract")
+	private Boolean   supressCommentExtraction = null;
+	@Arg("-startAftersWhite")
+	private Boolean   startAfterWhite          = null;
+	@Arg("--lineSeparator")
+	private String    lineSep                  = null;
+	@Arg("-replace")
+	private Replace[] replaces                 = null;
+	@Arg("-onlyRepWhenRep")
+	private Boolean   onlyRepsAfterReplace     = null;
+	@Arg("-supressReplaces")
+	private Boolean   supressReplaces          = null;
+	@Arg("-explicitLineSep")
+	private Boolean   explicitLineSep          = null;
 	
 	public ParserGUI load() {
 		setTitle("ENTER ARGS");
@@ -84,54 +114,47 @@ public class ParserGUI extends JFrame {
 		final JFileChooser argsFC = new JFileChooser();
 		{
 			FileFilter argsFCFilter = new FileFilter() {
-
+				
 				@Override
 				public String getDescription() {
-					return "[args] files";
+					return "[.args] files";
 				}
-
+				
 				@Override
 				public boolean accept(File f) {
-					if (f.isHidden())
-						return false;
-					if (f.isDirectory())
-						return true;
-					else if (!f.getName().toLowerCase().endsWith(".args"))
-						return false;
-					else
-						return true;
+					if (f.isHidden()) return false;
+					if (f.isDirectory()) return true;
+					else if ( !f.getName().toLowerCase().endsWith(".args")) return false;
+					else return true;
 				}
-
+				
 			};
 			argsFC.addChoosableFileFilter(argsFCFilter);
 			FileFilter argsFCFilter2 = new FileFilter() {
-
+				
 				@Override
 				public String getDescription() {
-					return "[args] files and hidden";
+					return "[.args] files and hidden";
 				}
-
+				
 				@Override
 				public boolean accept(File f) {
-					if (f.isDirectory())
-						return true;
-					else if (!f.getName().toLowerCase().endsWith(".args"))
-						return false;
-					else
-						return true;
+					if (f.isDirectory()) return true;
+					else if ( !f.getName().toLowerCase().endsWith(".args")) return false;
+					else return true;
 				}
-
+				
 			};
 			argsFC.addChoosableFileFilter(argsFCFilter2);
 			FileFilter[] allFilters = argsFC.getChoosableFileFilters();
 			argsFC.setFileFilter(argsFCFilter);
 			for (FileFilter check : allFilters) {
-				if (!argsFCFilter.equals(check) && !argsFCFilter2.equals(check)) {
+				if ( !argsFCFilter.equals(check) && !argsFCFilter2.equals(check)) {
 					argsFC.removeChoosableFileFilter(check);
 				}
 			}
 		}
-
+		
 		final JButton coniformButton = new JButton("finish");
 		coniformButton.addActionListener(e -> {
 			String[] args = generateArgs();
@@ -147,8 +170,17 @@ public class ParserGUI extends JFrame {
 		loadArgsButton.addActionListener(e -> {
 			int returnVal = argsFC.showOpenDialog(this);
 			if (returnVal == JFileChooser.APPROVE_OPTION) {
+				File file = argsFC.getSelectedFile();
+				if ( !Files.exists(file.toPath())) {
+					JOptionPane.showMessageDialog(this, "the file '" + file.getPath() + "' does not exsit!", "NO SUCH FILE!", JOptionPane.ERROR_MESSAGE);
+					return;
+				}
+				if (file.isDirectory()) {
+					JOptionPane.showMessageDialog(this, "i can not load from a folder! ('" + file.getPath() + "')", "NO FOLDERS!", JOptionPane.ERROR_MESSAGE);
+					return;
+				}
 				try {
-					Serializer.load(this, argsFC.getSelectedFile());
+					Serializer.load(this, file);
 				} catch (IOException e1) {
 					e1.printStackTrace();
 				}
@@ -158,8 +190,19 @@ public class ParserGUI extends JFrame {
 		saveArgsButton.addActionListener(e -> {
 			int returnVal = argsFC.showSaveDialog(this);
 			if (returnVal == JFileChooser.APPROVE_OPTION) {
+				File file = argsFC.getSelectedFile();
+				if (file.isDirectory()) {
+					JOptionPane.showMessageDialog(this, "i can not save to a folder! ('" + file.getPath() + "')", "NO FOLDERS!", JOptionPane.ERROR_MESSAGE);
+					return;
+				}
+				if (Files.exists(file.toPath())) {
+					int chose = JOptionPane.showConfirmDialog(this, "this file exists already ('" + file.getPath() + "'), should I overwrite the file?");
+					if (chose != JOptionPane.OK_OPTION) {
+						return;
+					}
+				}
 				try {
-					Serializer.save(this, argsFC.getSelectedFile(), false);
+					Serializer.save(this, file, false);
 				} catch (IOException e1) {
 					e1.printStackTrace();
 				}
@@ -177,7 +220,7 @@ public class ParserGUI extends JFrame {
 			saveArgsButton.setBounds(x, y, xWert, Y);
 			add(saveArgsButton);
 		}
-
+		
 		// String src = null;
 		// ("<-src> [FILE]");
 		// (" to set the source file");
@@ -192,17 +235,13 @@ public class ParserGUI extends JFrame {
 				srcText.setText(src);
 			}
 		});
-		srcText.addFocusListener(new FocusListener() {
-
+		srcText.addFocusListener(new FocusAdapter() {
+			
 			@Override
 			public void focusLost(FocusEvent e) {
 				src = srcText.getText();
 			}
-
-			@Override
-			public void focusGained(FocusEvent e) {
-			}
-
+			
 		});
 		x = VOID;
 		y += LINE;
@@ -211,7 +250,7 @@ public class ParserGUI extends JFrame {
 		x += VOID + FIRST_X;
 		srcText.setBounds(x, y, SECOND_X, Y);
 		add(srcText);
-
+		
 		// String dest = null;
 		// ("<-dest> or <-target> [FILE]");
 		// (" to set the target file");
@@ -226,17 +265,13 @@ public class ParserGUI extends JFrame {
 				destText.setText(dest);
 			}
 		});
-		destText.addFocusListener(new FocusListener() {
-
+		destText.addFocusListener(new FocusAdapter() {
+			
 			@Override
 			public void focusLost(FocusEvent e) {
 				dest = destText.getText();
 			}
-
-			@Override
-			public void focusGained(FocusEvent e) {
-			}
-
+			
 		});
 		x = VOID;
 		y += LINE;
@@ -245,13 +280,13 @@ public class ParserGUI extends JFrame {
 		add(destButton);
 		destText.setBounds(x, y, SECOND_X, Y);
 		add(destText);
-
+		
 		// boolean forceOverrde = false;
 		// ("<--force> or <--forceOverride>");
 		// (" to overwrite the target file if it already exists");
 		final JTextField forceOverwrite = new JTextField("exit if target file exists:", 1);
 		forceOverwrite.setEditable(false);
-		final JComboBox<String> forceOverComboBox = new JComboBox<String>();
+		final JComboBox <String> forceOverComboBox = new JComboBox <String>();
 		forceOverComboBox.addItem("exit if target exsist");
 		forceOverComboBox.addItem("overwrite if target exsist");
 		forceOverComboBox.addActionListener((l) -> {
@@ -264,8 +299,7 @@ public class ParserGUI extends JFrame {
 				this.forceOverrde = true;
 				break;
 			default:
-				throw new AssertionError("illegal selectet item-index: " + i + " legal:[0,1] item-value: '"
-						+ forceOverComboBox.getItemAt(i) + "'");
+				throw new AssertionError("illegal selectet item-index: " + i + " legal:[0,1] item-value: '" + forceOverComboBox.getItemAt(i) + "'");
 			}
 		});
 		x = VOID;
@@ -275,7 +309,7 @@ public class ParserGUI extends JFrame {
 		forceOverComboBox.setBounds(x, y, SECOND_X, Y);
 		add(forceOverwrite);
 		add(forceOverComboBox);
-
+		
 		// ParserTemplate props = null;
 		// ("<-ep> or <-empty>");
 		// (" to use the Empty property as default");
@@ -291,7 +325,7 @@ public class ParserGUI extends JFrame {
 		// (" to use the Main property as default");
 		final JTextField templateOverwrite = new JTextField("your choosen template:", 1);
 		templateOverwrite.setEditable(false);
-		final JComboBox<String> templateOverComboBox = new JComboBox<String>();
+		final JComboBox <String> templateOverComboBox = new JComboBox <String>();
 		templateOverComboBox.addItem("arduino with empty loop");
 		templateOverComboBox.addItem("arduino with nearly empty loop");
 		templateOverComboBox.addItem("arduino with loop generated by <loop:> marks");
@@ -340,8 +374,7 @@ public class ParserGUI extends JFrame {
 				template = null;
 				break;
 			default:
-				throw new AssertionError("illegal selectet item-index: " + i + " legal:[0,1] item-value: '"
-						+ templateOverComboBox.getItemAt(i) + "'");
+				throw new AssertionError("illegal selectet item-index: " + i + " legal:[0,1] item-value: '" + templateOverComboBox.getItemAt(i) + "'");
 			}
 		});
 		x = VOID;
@@ -351,15 +384,15 @@ public class ParserGUI extends JFrame {
 		templateOverComboBox.setBounds(x, y, SECOND_X, Y);
 		add(templateOverwrite);
 		add(templateOverComboBox);
-
+		
 		// String charset = null;
 		// ("<--cs> or <--charset>");
 		// (" to set the charset of the source and target file");
 		final JTextField charsetTField = new JTextField("Your chosen Charset (like UTF-8):", 1);
 		charsetTField.setEditable(false);
 		final JTextPane charsetTPane = new JTextPane();
-		charsetTPane.addFocusListener(new FocusListener() {
-
+		charsetTPane.addFocusListener(new FocusAdapter() {
+			
 			@Override
 			public void focusLost(FocusEvent e) {
 				String t = charsetTPane.getText();
@@ -385,11 +418,7 @@ public class ParserGUI extends JFrame {
 					}
 				}
 			}
-
-			@Override
-			public void focusGained(FocusEvent e) {
-			}
-
+			
 		});
 		charsetTPane.setText(null);
 		x = VOID;
@@ -397,19 +426,18 @@ public class ParserGUI extends JFrame {
 		charsetTField.setBounds(x, y, FIRST_X, Y);
 		x += VOID + FIRST_X;
 		charsetTPane.setBounds(x, y, SECOND_X, Y);
-
+		
 		add(charsetTField);
 		add(charsetTPane);
-
+		
 		// String lineSep = null;
 		// ("<--lsp> or <--lineSeparator> <CRLF> or <CR> or <LF>");
 		// (" sets the line separator to the param");
 		final JTextField lineSepTField = new JTextField("Your chosen line separator:", 1);
-		final JComboBox<String> lineSepComboBox = new JComboBox<String>();
+		final JComboBox <String> lineSepComboBox = new JComboBox <String>();
 		lineSepTField.setEditable(false);
 		String sls = System.lineSeparator();
-		lineSepComboBox.addItem("system line separator: ("
-				+ ("\r\n".equals(sls) ? "CR LF" : "\n".equals(sls) ? "LF" : "\r".equals(sls) ? "CR" : "unknown") + ")");
+		lineSepComboBox.addItem("system line separator: (" + ("\r\n".equals(sls) ? "CR LF" : "\n".equals(sls) ? "LF" : "\r".equals(sls) ? "CR" : "unknown") + ")");
 		lineSepComboBox.addItem("CR LF (Windows)");
 		lineSepComboBox.addItem("CR (MacOs)");
 		lineSepComboBox.addItem("LF (Linux)");
@@ -429,8 +457,7 @@ public class ParserGUI extends JFrame {
 				lineSep = "LF";
 				break;
 			default:
-				throw new AssertionError("illegal selectet item-index: " + i + " legal:[0,1] item-value: '"
-						+ lineSepComboBox.getItemAt(i) + "'");
+				throw new AssertionError("illegal selectet item-index: " + i + " legal:[0,1] item-value: '" + lineSepComboBox.getItemAt(i) + "'");
 			}
 		});
 		x = VOID;
@@ -440,7 +467,7 @@ public class ParserGUI extends JFrame {
 		lineSepComboBox.setBounds(x, y, SECOND_X, Y);
 		add(lineSepTField);
 		add(lineSepComboBox);
-
+		
 		final String normalOptionsText = "normal options";
 		final String advancedOptionsText = "advanced options";
 		final String allOptionsText = "all options";
@@ -448,9 +475,9 @@ public class ParserGUI extends JFrame {
 		x = VOID;
 		y += LINE;
 		advancedOptionsButton.setBounds(x, y, FIRST_X, Y);
-
+		
 		{// advanced options
-			final List<Component> advancedOptionsComps = new ArrayList<>();
+			final List <Component> advancedOptionsComps = new ArrayList <>();
 			// String[] headLines = null;
 			// ("<-hl> or <-headLines> [END_MAGIX] <arg>* [END_MAGIX]");
 			// (" to set the head lines (the END_MAGIX will not be added on the start or end
@@ -459,16 +486,14 @@ public class ParserGUI extends JFrame {
 			final JFrame headLinesFrame = new JFrame("head lines:");
 			final JTextArea headLinesTestArea = new JTextArea();
 			headLinesFrame.addWindowListener(new WindowAdapter() {
-
+				
 				@Override
 				public void windowClosed(WindowEvent e) {
 					String t = headLinesTestArea.getText();
-					if (t == null || t.isEmpty())
-						headLines = null;
-					else
-						headLines = t.split("(\r\n)|\r|\n");
+					if (t == null || t.isEmpty()) headLines = null;
+					else headLines = t.split("(\r\n)|\r|\n");
 				};
-
+				
 			});
 			headLinesFrame.setDefaultCloseOperation(HIDE_ON_CLOSE);
 			headLinesFrame.setVisible(false);
@@ -477,18 +502,18 @@ public class ParserGUI extends JFrame {
 			headLinesFrame.setLocationRelativeTo(null);
 			headLinesFrame.add(headLinesTestArea);
 			headLinesFrame.addHierarchyBoundsListener(new HierarchyBoundsAdapter() {
-
+				
 				@Override
 				public void ancestorResized(HierarchyEvent e) {
 					headLinesTestArea.setBounds(headLinesFrame.getBounds());
 				}
-
+				
 			});
 			headLinesTestArea.setBounds(0, 0, 500, 500);
 			headLinesButton.addActionListener(a -> {
 				headLinesFrame.setVisible(true);
 			});
-			final JComboBox<String> headLinesComboBox = new JComboBox<String>();
+			final JComboBox <String> headLinesComboBox = new JComboBox <String>();
 			headLinesComboBox.addItem("not choosen");
 			headLinesComboBox.addItem("head lines are enabled");
 			headLinesComboBox.addItem("head lines are disabled");
@@ -501,7 +526,7 @@ public class ParserGUI extends JFrame {
 			advancedOptionsComps.add(headLinesComboBox);
 			add(headLinesButton);
 			add(headLinesComboBox);
-
+			
 			// String[] tailLines = null;
 			// ("<-tl> or <-tailLines> [END_MAGIX] <arg>* [END_MAGIX]");
 			// (" to set the tail lines (the END_MAGIX will not be added on the start or end
@@ -510,16 +535,14 @@ public class ParserGUI extends JFrame {
 			final JFrame tailLinesFrame = new JFrame("head lines:");
 			final JTextArea tailLinesTestArea = new JTextArea();
 			tailLinesFrame.addWindowListener(new WindowAdapter() {
-
+				
 				@Override
 				public void windowClosed(WindowEvent e) {
 					String t = tailLinesTestArea.getText();
-					if (t == null || t.isEmpty())
-						headLines = null;
-					else
-						headLines = t.split("(\r\n)|\r|\n");
+					if (t == null || t.isEmpty()) headLines = null;
+					else headLines = t.split("(\r\n)|\r|\n");
 				};
-
+				
 			});
 			tailLinesFrame.setDefaultCloseOperation(HIDE_ON_CLOSE);
 			tailLinesFrame.setVisible(false);
@@ -528,18 +551,18 @@ public class ParserGUI extends JFrame {
 			tailLinesFrame.setLocationRelativeTo(null);
 			tailLinesFrame.add(tailLinesTestArea);
 			tailLinesFrame.addHierarchyBoundsListener(new HierarchyBoundsAdapter() {
-
+				
 				@Override
 				public void ancestorResized(HierarchyEvent e) {
 					tailLinesTestArea.setBounds(tailLinesFrame.getBounds());
 				}
-
+				
 			});
 			tailLinesTestArea.setBounds(0, 0, 500, 500);
 			tailLinesButton.addActionListener(a -> {
 				tailLinesFrame.setVisible(true);
 			});
-			final JComboBox<String> tailLinesComboBox = new JComboBox<String>();
+			final JComboBox <String> tailLinesComboBox = new JComboBox <String>();
 			tailLinesComboBox.addItem("not choosen");
 			tailLinesComboBox.addItem("head lines are enabled");
 			tailLinesComboBox.addItem("head lines are disabled");
@@ -552,7 +575,7 @@ public class ParserGUI extends JFrame {
 			advancedOptionsComps.add(tailLinesComboBox);
 			add(tailLinesButton);
 			add(tailLinesComboBox);
-
+			
 			// String lineStart = null;
 			// ("<-ls> or <-lineStart> [LINE_START]");
 			// (" to set the start of each printed line");
@@ -564,16 +587,16 @@ public class ParserGUI extends JFrame {
 				lineStart = null;
 			});
 			lineSepTField.addFocusListener(new FocusListener() {
-
+				
 				@Override
 				public void focusLost(FocusEvent e) {
 					lineStart = lineStartText.getText();
 				}
-
+				
 				@Override
 				public void focusGained(FocusEvent e) {
 				}
-
+				
 			});
 			x = VOID;
 			y += LINE;
@@ -584,7 +607,7 @@ public class ParserGUI extends JFrame {
 			advancedOptionsComps.add(lineStartButton);
 			add(lineStartText);
 			add(lineStartButton);
-
+			
 			// String lineEnd = null;
 			// ("<-le> or <-lineEnd> [LINE_END]");
 			// (" to set the end of each printed line, this will be printed before the
@@ -596,17 +619,13 @@ public class ParserGUI extends JFrame {
 				lineEndText.setText("your chosen line end");
 				lineStart = null;
 			});
-			lineEndText.addFocusListener(new FocusListener() {
-
+			lineEndText.addFocusListener(new FocusAdapter() {
+				
 				@Override
 				public void focusLost(FocusEvent e) {
 					lineEnd = lineEndText.getText();
 				}
-
-				@Override
-				public void focusGained(FocusEvent e) {
-				}
-
+				
 			});
 			x = VOID;
 			y += LINE;
@@ -617,15 +636,14 @@ public class ParserGUI extends JFrame {
 			advancedOptionsComps.add(lineEndButton);
 			add(lineEndText);
 			add(lineEndButton);
-
+			
 			// Boolean startAfterWhite = null;
 			// ("<-saw> or <-startAftersWhite> <true>/<1> or <false>/<0>");
 			// (" to set if the line start will be set after the whitespace at the begin of
 			// the line or before the whitespace of the line");
 			final JTextField startAfterWhiteText = new JTextField("line start will be set at:");
 			startAfterWhiteText.setEditable(false);
-			final JComboBox<String> startAfterWhiteComboBox = new JComboBox<String>(new String[] { "nothing choosen",
-					"line start is after the whitespace", "line start is set an the real line start" });
+			final JComboBox <String> startAfterWhiteComboBox = new JComboBox <String>(new String[] {"nothing choosen", "line start is after the whitespace", "line start is set an the real line start" });
 			startAfterWhiteComboBox.addActionListener(e -> {
 				int i = startAfterWhiteComboBox.getSelectedIndex();
 				switch (i) {
@@ -636,8 +654,7 @@ public class ParserGUI extends JFrame {
 					startAfterWhite = false;
 					break;
 				default:
-					throw new AssertionError("illegal selectet item-index: " + i + " legal:[0,1] item-value: '"
-							+ forceOverComboBox.getItemAt(i) + "'");
+					throw new AssertionError("illegal selectet item-index: " + i + " legal:[0,1] item-value: '" + forceOverComboBox.getItemAt(i) + "'");
 				}
 			});
 			x = VOID;
@@ -649,7 +666,7 @@ public class ParserGUI extends JFrame {
 			advancedOptionsComps.add(startAfterWhiteComboBox);
 			add(startAfterWhiteText);
 			add(startAfterWhiteComboBox);
-
+			
 			x = VOID;
 			y += LINE;
 			final JButton allOptionsButton = new JButton(allOptionsText);
@@ -657,8 +674,8 @@ public class ParserGUI extends JFrame {
 			advancedOptionsComps.add(allOptionsButton);
 			add(allOptionsButton);
 			{
-				List<Component> allOptionsComps = new ArrayList<Component>();
-
+				List <Component> allOptionsComps = new ArrayList <Component>();
+				
 				// String asmCommentSymbol = null;
 				// ("<-asmCommentSymbol> or <-acs> [COMMENT_SYMBOL]");
 				// (" to set the Assembler comment symbol to COMMENT_SYMBOL");
@@ -666,12 +683,12 @@ public class ParserGUI extends JFrame {
 				final JTextPane asmCommentSymbolTextPane = new JTextPane();
 				asmCommentSymbolTextPane.setText("define your unparsed commend symbol here");
 				asmCommentSymbolTextPane.addFocusListener(new FocusAdapter() {
-
+					
 					@Override
 					public void focusLost(FocusEvent e) {
 						asmCommentSymbol = asmCommentSymbolTextPane.getText();
 					}
-
+					
 				});
 				asmCommentSymbolButton.addActionListener(a -> {
 					asmCommentSymbolTextPane.setText("define your unparsed commend symbol here");
@@ -685,7 +702,7 @@ public class ParserGUI extends JFrame {
 				advancedOptionsComps.add(asmCommentSymbolTextPane);
 				add(asmCommentSymbolButton);
 				add(asmCommentSymbolTextPane);
-
+				
 				// String parsedCommentSymbol = null;
 				// ("<-parsedCommentSymbol> or <-pcs> [COMMENT_SYMBOL]");
 				// (" to set the parsed comment symbol to COMMENT_SYMBOL");
@@ -693,12 +710,12 @@ public class ParserGUI extends JFrame {
 				final JTextPane parsedCommentSymbolTextPane = new JTextPane();
 				parsedCommentSymbolTextPane.setText("define your parsed commend symbol here");
 				parsedCommentSymbolTextPane.addFocusListener(new FocusAdapter() {
-
+					
 					@Override
 					public void focusLost(FocusEvent e) {
 						asmCommentSymbol = parsedCommentSymbolTextPane.getText();
 					}
-
+					
 				});
 				parsedCommentSymbolButton.addActionListener(a -> {
 					parsedCommentSymbolTextPane.setText("define your parsed commend symbol here");
@@ -712,9 +729,9 @@ public class ParserGUI extends JFrame {
 				advancedOptionsComps.add(parsedCommentSymbolTextPane);
 				add(parsedCommentSymbolButton);
 				add(parsedCommentSymbolTextPane);
-
+				
 				// TODO continue here
-
+				
 				{// all options button
 					allOptionsButton.addActionListener(a -> {
 						if (allOptionsText.equals(allOptionsButton.getText())) {
@@ -743,7 +760,7 @@ public class ParserGUI extends JFrame {
 					deactivate.setVisible(false);
 				}
 			}
-
+			
 			{// advanced options button
 				advancedOptionsButton.addActionListener(a -> {
 					if (advancedOptionsText.equals(advancedOptionsButton.getText())) {
@@ -773,9 +790,9 @@ public class ParserGUI extends JFrame {
 				deactivate.setVisible(false);
 			}
 		}
-
+		
 		add(advancedOptionsButton);
-
+		
 		/*
 		 * @formatter:off boolean noFinish = true; ("<--noFinish> or <--nf>");
 		 * ("          to print no finish message after finishing with parsing");
@@ -830,12 +847,12 @@ public class ParserGUI extends JFrame {
 		 * 
 		 * @formatter:on
 		 */
-
+		
 		setVisible(true);
 		toFront();
 		return this;
 	}
-
+	
 	private void setAllNull() {
 		// to free them for the garbage collector
 		template = null;
@@ -857,20 +874,73 @@ public class ParserGUI extends JFrame {
 		startAfterWhite = null;
 		lineSep = null;
 		replaces = null;
-		continueAfterReplaces = null;
+		onlyRepsAfterReplace = null;
 		supressReplaces = null;
 		explicitLineSep = null;
 	}
-
-	private String[] generateArgs() {
-		// TODO Auto-generated method stub
-		JOptionPane.showMessageDialog(null, "can not genarates args, reason: zu faul");
-		throw new RuntimeException("noch nicht gemacht!");
-	}
-
 	
-	public static void addListElement(Object list, int index, Object set) {
-		
+	private String[] generateArgs() {
+		Class <? extends ParserGUI> cls = getClass();
+		Field[] fields = cls.getDeclaredFields();
+		List <String> args = new ArrayList <>();
+		for (Field field : fields) {
+			Arg argAnot = field.getAnnotation(Arg.class);
+			if (argAnot == null) continue;
+			Class <?> type = field.getType();
+			try {
+				String argSymbol = argAnot.value();
+				if (type == Boolean.TYPE) {// .TYPE is for the primitive type boolean
+					if (field.getBoolean(this)) {
+						args.add(argSymbol);
+					} // else nothing has to be added
+				} else {
+					Object val = field.get(this);
+					if (val != null) {
+						if (type == Boolean.class) {
+							if ( !"".equals(argSymbol)) {
+								args.add(argSymbol);
+							}
+							
+						} else if (type == String.class) {
+							if ( !"".equals(argSymbol)) {
+								args.add(argSymbol);
+							}
+							args.add((String) val);
+						} else if (type == String[].class) {
+							if ( !"".equals(argSymbol)) {
+								args.add(argSymbol);
+							}
+							StringBuilder endSymbol = new StringBuilder("END");
+							List <String> listVal = Arrays.asList((String[]) val);
+							HashSet <String> zw = new HashSet <String>(listVal);
+							String es = endSymbol.toString();
+							while (zw.contains(es)) {
+								endSymbol.append('#');
+								es = endSymbol.toString();
+							}
+							args.add(es);
+							args.addAll(listVal);
+							args.add(es);
+						} else if (type == Replace[].class) {
+							Replace[] reps = (Replace[]) val;
+							for (int i = 0; i < reps.length; i ++ ) {
+								if ( !"".equals(argSymbol)) {
+									args.add(argSymbol);
+								}
+								args.add(reps[i].regex);
+								args.add(reps[i].replacement);
+							}
+						} else {
+							throw new AssertionError("unknown type ('" + type + "') of field '" + field + "' with arg ('" + argSymbol + "') in my class ('" + cls + "')");
+						}
+					}
+				}
+			} catch (IllegalArgumentException | IllegalAccessException e) {
+				e.printStackTrace();
+				throw new InternalError("this should be my own field msg: '" + e.getMessage() + "' lmsg: '" + e.getLocalizedMessage() + "'", e);
+			}
+		}
+		return args.toArray(new String[args.size()]);
 	}
 	
 }
