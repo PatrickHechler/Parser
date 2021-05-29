@@ -171,7 +171,7 @@ public class Main {
 			switch (args[i].toLowerCase()) {
 			case "--nf":
 			case "--nofinish":
-				if (finishMsg) exit("double of <--noFinish>", args);
+				if (!finishMsg) exit("double of <--noFinish>", args);
 				finishMsg = false;
 				break;
 			case "--s":
@@ -420,8 +420,12 @@ public class Main {
 		if ( !Files.exists(source)) exit("no source file found src: '" + src + "'", args);
 		Charset cs;
 		try {
-			if (charset != null) cs = Charset.forName(charset);
-			else cs = Charset.defaultCharset();
+			if (charset != null) {
+				cs = Charset.forName(charset);
+			} else {
+				cs = Charset.defaultCharset();
+				charset = cs.name();
+			}
 		} catch (UnsupportedCharsetException | IllegalCharsetNameException e) {
 			e.printStackTrace();
 			exit("class -> " + e.getClass().getName() + "   msg -> " + e.getLocalizedMessage(), args);
