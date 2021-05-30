@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -46,6 +47,7 @@ public class Serializer {
 	private static final int PRIMITIVE_BOOLEAN           = 1;
 	private static final int NULL                        = -1;
 	private static final int FINISH_VALUE                = -2;
+	private static final int FINISH_ALL                  = -3;
 	
 	public static void load(Object obj, File loadFile) throws IOException {
 		// OutputStream out = new FileOutputStream(saveFile);
@@ -60,86 +62,371 @@ public class Serializer {
 		// }
 		Class <?> myClass = obj.getClass();
 		InputStream in = new FileInputStream(loadFile);
+		load(obj, myClass, in);
+	}
+	
+	private static void load(Object obj, Class <?> myClass, InputStream in) throws IOException, AssertionError, InternalError, Error, NoClassDefFoundError {
 		while (true) {
 			try {
-				String name = readString(in);
-				Field field = myClass.getDeclaredField(name);
-				byte[] bytes = new byte[Integer.BYTES];
-				in.read(bytes);
-				int identy = byteArrToInt(bytes, 0);
-				switch (identy) {
-				case NULL:
-					field.set(obj, null);
-					break;
-				case PRIMITIVE_BOOLEAN:
-					// if (type == Boolean.Type) {
-					// out.write(1);
-					// boolean bool = (boolean) (Boolean) val;
-					// out.write(bool ? 1 : 0);
-					int val = in.read();
-					if (val != 1 && val != 0) {
-						throw new AssertionError("expected to read 0 or 1, but got: " + val);
-					}
-					field.setBoolean(obj, val == 1);
-					break;
-				case PRIMITIVE_BYTE:// TODO continue here
-					break;
-				case PRIMITIVE_CHAR:
-					break;
-				case PRIMITIVE_DOUBLE:
-					break;
-				case PRIMITIVE_FLOAT:
-					break;
-				case PRIMITIVE_INT:
-					break;
-				case PRIMITIVE_LONG:
-					break;
-				case PRIMITIVE_SHORT:
-					break;
-				case BOOLEAN_ARRAY:
-					break;
-				case BYTE_ARRAY:
-					break;
-				case CHAR_ARRAY:
-					break;
-				case DOUBLE_ARRAY:
-					break;
-				case FLOAT_ARRAY:
-					break;
-				case INT_ARRAY:
-					break;
-				case LONG_ARRAY:
-					break;
-				case SHORT_ARRAY:
-					break;
-				case OBJECT_ARRAY:
-					break;
-				case OBJECT_STRING:
-					break;
-				case OBJECT_UNKNOWN:
-					break;
-				case OBJECT_COSTUM:
-					break;
-				default:
-					throw new AssertionError("unknown identifier: " + identy);
-				}
-				
-				// TODO Auto-generated method stub
-				throw new RuntimeException("noch nicht gemacht!");
+				readField(obj, myClass, in);
 			} catch (NoSuchFieldException e) {
 				e.printStackTrace();
 				throw new InternalError("does not know the loaded field with name: ", e);
 			} catch (SecurityException e) {
 				e.printStackTrace();
-				throw new InternalError("the permission to acces my field was denied by the security manager!", e);
+				throw new InternalError("the permission to acces the field was denied by the security manager!", e);
 			} catch (IllegalArgumentException e) {
 				e.printStackTrace();
 				throw new InternalError("illegal argument: field.set.*(obj{'" + obj + "'", e);
 			} catch (IllegalAccessException e) {
 				e.printStackTrace();
 				throw new InternalError("security manager denied the permission to acces saved field of class: " + obj.getClass(), e);
+			} catch (ClassNotFoundException e) {
+				e.printStackTrace();
+				if (e.getCause() != null && e.getCause() instanceof Error) {
+					throw (Error) e.getCause();
+				}
+				throw new NoClassDefFoundError("could not find the class! m: '" + e.getMessage() + "' lm: '" + e.getLocalizedMessage() + "'");
+			} catch (InstantiationException e) {
+				e.printStackTrace();
+				throw new InternalError(e);
+			} catch (InvocationTargetException e) {
+				e.printStackTrace();
+				throw new InternalError(e);
+			} catch (NoSuchMethodException e) {
+				e.printStackTrace();
+				throw new AssertionError("could not load the method m: '" + e.getMessage() + "' lm: '" + e.getLocalizedMessage() + "'");
 			}
 		}
+	}
+	
+	private static void readField(Object obj, Class <?> myClass, InputStream in)
+			throws IOException, NoSuchFieldException, IllegalAccessException, AssertionError, ClassNotFoundException, InstantiationException, InvocationTargetException, NoSuchMethodException {
+		String name = readString(in);
+		Field field = myClass.getDeclaredField(name);
+		Map <Class <?>, Options> opts = Options.create(field.getAnnotation(SerializerOptions.class));
+		Object val = readValue(in, opts);
+		field.set(obj, val);
+	}
+	
+	private static Object readValue(InputStream in, Map <Class <?>, Options> opts)
+			throws IOException, IllegalAccessException, AssertionError, ClassNotFoundException, InstantiationException, InvocationTargetException, NoSuchMethodException, NoSuchFieldException {
+		Object ret;
+		int identy = readInt(in);
+		switch (identy) {
+		case NULL:
+			ret = null;
+			break;
+		case PRIMITIVE_BOOLEAN: {
+			// if (type == Boolean.Type) {
+			// out.write(1);
+			// boolean bool = (boolean) (Boolean) val;
+			// out.write(bool ? 1 : 0);
+			int val = in.read();
+			if (val != 1 && val != 0) {
+				throw new AssertionError("expected to read 0 or 1, but got: " + val);
+			}
+			ret = val == 1;
+			assertFinish(in);
+			break;
+		}
+		case PRIMITIVE_BYTE: {
+			byte val = (byte) in.read();
+			ret = val;
+			assertFinish(in);
+			break;
+		}
+		case PRIMITIVE_CHAR: {
+			char val = (char) in.read();
+			val |= in.read() << 8;
+			ret = val;
+			assertFinish(in);
+			break;
+		}
+		case PRIMITIVE_DOUBLE: {
+			long val = (long) in.read();
+			val |= in.read() << 8;
+			val |= in.read() << 16;
+			val |= in.read() << 24;
+			val |= in.read() << 32;
+			val |= in.read() << 40;
+			val |= in.read() << 48;
+			val |= in.read() << 56;
+			ret = Double.longBitsToDouble(val);
+			assertFinish(in);
+			break;
+		}
+		case PRIMITIVE_FLOAT: {
+			int val = in.read();
+			val |= in.read() << 8;
+			val |= in.read() << 16;
+			val |= in.read() << 24;
+			ret = Float.intBitsToFloat(val);
+			assertFinish(in);
+			break;
+		}
+		case PRIMITIVE_INT: {
+			int val = in.read();
+			val |= in.read() << 8;
+			val |= in.read() << 16;
+			val |= in.read() << 24;
+			ret = val;
+			assertFinish(in);
+			break;
+		}
+		case PRIMITIVE_LONG: {
+			long val = (long) in.read();
+			val |= in.read() << 8;
+			val |= in.read() << 16;
+			val |= in.read() << 24;
+			val |= in.read() << 32;
+			val |= in.read() << 40;
+			val |= in.read() << 48;
+			val |= in.read() << 56;
+			ret = val;
+			assertFinish(in);
+			break;
+		}
+		case PRIMITIVE_SHORT: {
+			short val = (short) in.read();
+			val |= in.read() << 8;
+			ret = val;
+			assertFinish(in);
+			break;
+		}
+		case BOOLEAN_ARRAY: {
+			int len = readInt(in);
+			boolean[] val = new boolean[len];
+			for (int i = 0, ii = 0, b = in.read(); i < val.length; i ++ , ii ++ ) {
+				if (ii >= Byte.SIZE) {
+					b = in.read();
+					ii = 0;
+				}
+				val[i] = (b & (1 << ii)) != 0;
+			}
+			ret = val;
+			assertFinish(in);
+			break;
+		}
+		case BYTE_ARRAY: {
+			int len = readInt(in);
+			byte[] val = new byte[len];
+			in.read(val);
+			ret = val;
+			assertFinish(in);
+			break;
+		}
+		case CHAR_ARRAY: {
+			int len = readInt(in);
+			char[] val = new char[len];
+			byte[] bytes = new byte[2];
+			for (int i = 0; i < val.length; i ++ ) {
+				in.read(bytes);
+				val[i] = (char) bytes[0];
+				val[i] |= bytes[0] << 8;
+			}
+			ret = val;
+			assertFinish(in);
+			break;
+		}
+		case DOUBLE_ARRAY: {
+			int len = readInt(in);
+			double[] val = new double[len];
+			byte[] bytes = new byte[8];
+			for (int i = 0; i < val.length; i ++ ) {
+				in.read(bytes);
+				long zw = bytes[0];
+				zw |= bytes[1] << 8;
+				zw |= bytes[2] << 16;
+				zw |= bytes[3] << 24;
+				zw |= bytes[4] << 32;
+				zw |= bytes[5] << 40;
+				zw |= bytes[6] << 48;
+				zw |= bytes[7] << 56;
+				val[i] = Double.longBitsToDouble(zw);
+			}
+			ret = val;
+			assertFinish(in);
+			break;
+		}
+		case FLOAT_ARRAY: {
+			int len = readInt(in);
+			float[] val = new float[len];
+			byte[] bytes = new byte[4];
+			for (int i = 0; i < val.length; i ++ ) {
+				in.read(bytes);
+				int zw = bytes[0];
+				zw |= bytes[1] << 8;
+				zw |= bytes[2] << 16;
+				zw |= bytes[3] << 24;
+				val[i] = Float.intBitsToFloat(zw);
+			}
+			ret = val;
+			assertFinish(in);
+			break;
+		}
+		case INT_ARRAY: {
+			int len = readInt(in);
+			int[] val = new int[len];
+			byte[] bytes = new byte[4];
+			for (int i = 0; i < val.length; i ++ ) {
+				in.read(bytes);
+				val[i] = bytes[0];
+				val[i] |= bytes[1] << 8;
+				val[i] |= bytes[2] << 16;
+				val[i] |= bytes[3] << 24;
+			}
+			ret = val;
+			assertFinish(in);
+			break;
+		}
+		case LONG_ARRAY: {
+			int len = readInt(in);
+			long[] val = new long[len];
+			byte[] bytes = new byte[8];
+			for (int i = 0; i < val.length; i ++ ) {
+				in.read(bytes);
+				val[i] = bytes[8];
+				val[i] |= bytes[1] << 8;
+				val[i] |= bytes[2] << 16;
+				val[i] |= bytes[3] << 24;
+				val[i] |= bytes[4] << 32;
+				val[i] |= bytes[5] << 40;
+				val[i] |= bytes[6] << 48;
+				val[i] |= bytes[7] << 56;
+			}
+			ret = val;
+			assertFinish(in);
+			break;
+		}
+		case SHORT_ARRAY: {
+			int len = readInt(in);
+			short[] val = new short[len];
+			byte[] bytes = new byte[2];
+			for (int i = 0; i < val.length; i ++ ) {
+				in.read(bytes);
+				val[i] = bytes[0];
+				val[i] |= bytes[1] << 8;
+			}
+			ret = val;
+			assertFinish(in);
+			break;
+		}
+		case OBJECT_ARRAY: {
+			int len = readInt(in);
+			String clsName = readString(in);
+			Class <?> cls = Class.forName(clsName);
+			Object val = Array.newInstance(cls, len);
+			for (int i = 0; i < len; i ++ ) {
+				Object zw = readValue(in, opts);
+				Array.set(val, i, zw);
+			}
+			ret = val;
+			assertFinish(in);
+			break;
+		}
+		case OBJECT_STRING: {
+			String val = readString(in);
+			ret = val;
+			assertFinish(in);
+			break;
+		}
+		case OBJECT_UNKNOWN: {
+			String clsName = readString(in);
+			Class <?> cls = Class.forName(clsName);
+			Object val = cls.getConstructor().newInstance();
+			load(val, val.getClass(), in);
+			ret = val;
+			assertFinish(in);
+			break;
+		}
+		case OBJECT_COSTUM: {
+			// writeString(out, val.getClass().getName());
+			String clsName = readString(in);
+			Class <?> cls = Class.forName(clsName);
+			Options opt = opts.get(cls);
+			// out.write(intToByteArr(options.save.size()));
+			// for (Field save : options.save) {
+			// save(val, save, out, saveStatic);
+			// }
+			// out.write(OBJECT_COSTUM_FINISH_STEP_A);
+			if (opt == null || opt.create == null) {
+				ret = cls.getConstructor().newInstance();
+			} else {
+				ret = opt.create.invoke(null);
+			}
+			int len = readInt(in);
+			if (opt == null || opt.save.size() != len) {
+				System.err.println("WARN: costum class with diffrent costumasation than on saving: "
+						+ ( (opt == null) ? "no options" : ("I would save " + opt.save.size() + " fields, but there has been saved " + len + " fields")));
+			}
+			for (int i = 0; i < len; i ++ ) {
+				String fn = readString(in);
+				Field f = cls.getField(fn);
+				if (opt != null && !opt.save.contains(f)) {
+					System.err.println("WARN: costum class wih diffrent a saved field which is not in my save fields: '" + f + "' my save fields: '" + opt.save + "'");
+				}
+				Object zw = readValue(in, opts);
+				f.set(ret, zw);
+			}
+			int zw = in.read();
+			if (zw != OBJECT_COSTUM_FINISH_STEP_A) throw new AssertionError("expected to read OBJECT_COSTUM_FINISH_STEP_A (" + OBJECT_COSTUM_FINISH_STEP_A + "), but got " + zw);
+			zw = in.read();
+			if (zw == OBJECT_COSTUM_NO_STEP_B) {
+				assertFinish(in);
+			} else if (zw == OBJECT_COSTUM_START_STEP_B) {
+				if (opt == null) {
+					System.err.println("ERROR: unknown costum class with a saved Part_B! Part_B requires to have a costum class with saveLoadWithGetSetOfIndexAndGetSize settings!");
+					throw new InternalError("I can not load Part_B, because I do not have a costumasation for this class and so I do not know wich methods I should call!");
+				}
+				if (opt.get == null) {
+					System.err
+							.println("ERROR: costum class with a saved Part_B, but my costum class does not have a Part_B! Part_B requires to have a costum class with saveLoadWithGetSetOfIndexAndGetSize settings!");
+					throw new InternalError(
+							"I can not load Part_B, because I do not have a costumasation with saveLoadWithGetSetOfIndexAndGetSize settings for this class and so I do not know wich methods I should call!");
+				}
+				// Method met = options.size;
+				// Object[] args = new Object[0];
+				// try {
+				// int size = (int) met.invoke(val, args);
+				// out.write(intToByteArr(size));
+				// args = new Object[1];
+				// met = options.get;
+				// for (int i = 0; i < size; i ++ ) {
+				// args[0] = i;
+				// Object zw = met.invoke(out, args);
+				// writeValue(zw, out, opts, saveStatic);
+				// }
+				len = readInt(in);
+				if (opt.setSize != null) {// setSize is optional
+					if (opt.setSize.getDeclaringClass().isAssignableFrom(cls)) {
+						opt.setSize.invoke(ret, len);
+					} else {
+						opt.setSize.invoke(null, ret, len);
+					}
+				}
+				for (int i = 0; i < len; i ++ ) {
+					Object rv = readValue(in, opts);
+					if (opt.set.getDeclaringClass().isAssignableFrom(cls)) {
+						opt.set.invoke(ret, i, rv);
+					} else {
+						opt.set.invoke(null, ret, i, rv);
+					}
+				}
+			} else {
+				throw new AssertionError("expected to read OBJECT_COSTUM_START_STEP_B (" + OBJECT_COSTUM_START_STEP_B + ") or OBJECT_COSTUM_NO_STEP_B (" + OBJECT_COSTUM_NO_STEP_B + "), but got " + zw);
+			}
+			break;
+		}
+		default:
+			throw new AssertionError("unknown identifier: " + identy);
+		}
+		return ret;
+	}
+	
+	private static void assertFinish(InputStream in) throws IOException, AssertionError {
+		int read = in.read();
+		if (FINISH_VALUE != read) throw new AssertionError("expected to read magix FINISH_VALUE (" + FINISH_VALUE + "), but got " + read);
 	}
 	
 	public static void save(Object obj, File saveFile, boolean saveStatic) throws IOException {
@@ -156,7 +443,7 @@ public class Serializer {
 		}
 	}
 	
-	public static void save(Object obj, ObjectOutputStream out, boolean saveStatic) throws IOException {
+	public static void save(Object obj, OutputStream out, boolean saveStatic) throws IOException {
 		Field[] fields = obj.getClass().getDeclaredFields();
 		Field.setAccessible(fields, true);
 		for (int i = 0; i < fields.length; i ++ ) {
@@ -166,9 +453,10 @@ public class Serializer {
 			if ( !saveStatic && (mod & Modifier.STATIC) != 0) continue;// can't set finals by loading anyway
 			save(obj, fields[i], out, saveStatic);
 		}
+		out.write(FINISH_ALL);
 	}
 	
-	private static void save(Object obj, Field field, ObjectOutputStream out, boolean saveStatic) throws IOException {
+	private static void save(Object obj, Field field, OutputStream out, boolean saveStatic) throws IOException {
 		{// write name
 			String name = field.getName();
 			writeString(out, name);
@@ -212,6 +500,7 @@ public class Serializer {
 		private Method setSize = null;
 		private Method get     = null;
 		private Method set     = null;
+		private Method create  = null;
 		
 		public static Map <Class <?>, Options> create(SerializerOptions serialOpts) {
 			if (serialOpts == null) return Collections.emptyMap();
@@ -329,11 +618,45 @@ public class Serializer {
 				} catch (NoSuchMethodException | SecurityException e) {
 					e.printStackTrace();
 					throw new InternalError("could not find field '" + strs[i] + "' in class '" + cls + "' m: '" + e.getMessage() + "'", e);
-				} catch (ArrayIndexOutOfBoundsException error) {
-					error.printStackTrace();
-					throw new InternalError(
-							"corrupt SerializerOptions: expected to have a String at item: " + i + " in saveLoadWithGetSetOfIndexAndGetSize: '" + Arrays.deepToString(strs) + "' m: '" + error.getMessage() + "'",
-							error);
+				}
+			}
+			strs = serialOpts.creator();
+			if (strs.length > 0) {
+				for (int i = 0; true; i ++ ) {
+					try {
+						cls = Class.forName(strs[i]);
+						if ( !opts.containsKey(cls)) {
+							opts.put(cls, new Options());
+						}
+						opt = opts.get(cls);
+						i ++ ;
+						if (strs[i + 1].isEmpty()) {
+							opt.create = cls.getDeclaredMethod(strs[i]);
+							i += 2;// i+1 is empty
+						} else if (strs[i + 2].isEmpty()) {
+							Class <?> zw = cls; // for the right error message if something goes wrong
+							cls = Class.forName(strs[i]);
+							i ++ ;
+							opt.create = cls.getDeclaredMethod(strs[i]);
+							cls = zw;
+							i += 2;// i + 1 is empty (already incremented i, so it isn't i+2 which is empty)
+						} else {
+							throw new AssertionError("corrupt SerializerOptions: expected to have a String empty string at item: " + i + " + (1 or 2) in create: '" + Arrays.deepToString(strs) + "'");
+						}
+					} catch (ClassNotFoundException e) {
+						e.printStackTrace();
+						throw new NoClassDefFoundError("could not find class '" + strs[i] + "' m: " + e.getMessage() + " lm: " + e.getLocalizedMessage());
+					} catch (ArrayIndexOutOfBoundsException error) {
+						error.printStackTrace();
+						throw new InternalError("corrupt SerializerOptions: expected to have a String at item: " + i + " in create: '" + Arrays.deepToString(strs) + "' m: '" + error.getMessage() + "'", error);
+					} catch (NoSuchMethodException e) {
+						e.printStackTrace();
+						throw new InternalError("could not find method '" + strs[i] + "' in class '" + cls + "' m: " + e.getMessage() + " lm: " + e.getLocalizedMessage(), e);
+					} catch (SecurityException e) {
+						e.printStackTrace();
+						throw new InternalError(
+								"the security manager denied the permission to load the method '" + strs[i] + "' from the class '" + cls + "' m: " + e.getMessage() + " lm: " + e.getLocalizedMessage(), e);
+					}
 				}
 			}
 			return opts;
@@ -341,7 +664,7 @@ public class Serializer {
 		
 	}
 	
-	private static void writeValue(Object val, ObjectOutputStream out, Map <Class <?>, Options> opts, boolean saveStatic) throws InternalError, IOException {
+	private static void writeValue(Object val, OutputStream out, Map <Class <?>, Options> opts, boolean saveStatic) throws InternalError, IOException {
 		if (val == null) {
 			out.write(NULL);
 		} else {// write value
@@ -375,9 +698,8 @@ public class Serializer {
 					char c = (char) (Character) val;
 					// char has two bytes
 					byte[] bytes = new byte[Character.BYTES];
-					for (int i = 0; i < bytes.length; i ++ ) {
-						bytes[i] = (byte) (c >> (i << 3)); // Bytes.SIZE = 8 = 1 << 3
-					}
+					bytes[0] = (byte) c;
+					bytes[0] = (byte) (c << 8);
 					out.write(bytes);
 				} else if (type == Double.TYPE) {
 					out.write(PRIMITIVE_DOUBLE);
@@ -532,6 +854,7 @@ public class Serializer {
 				} else {
 					if (opts != null && opts.containsKey(type)) {
 						out.write(OBJECT_COSTUM);
+						writeString(out, type.getName());
 						Options options = opts.get(type);
 						out.write(intToByteArr(options.save.size()));
 						for (Field save : options.save) {
@@ -541,14 +864,20 @@ public class Serializer {
 						if (options.size != null) {
 							out.write(OBJECT_COSTUM_START_STEP_B);
 							Method met = options.size;
-							Object[] args = new Object[0];
+							Object[] args = new Object[met.getParameterCount()];
+							if (args.length > 0) {
+								args[0] = val;
+							}
 							try {
 								int size = (int) met.invoke(val, args);
 								out.write(intToByteArr(size));
-								args = new Object[1];
 								met = options.get;
+								args = new Object[met.getParameterCount()];
+								if (args.length > 1) {
+									args[0] = val;
+								}
 								for (int i = 0; i < size; i ++ ) {
-									args[0] = i;
+									args[args.length - 1] = i;
 									Object zw = met.invoke(out, args);
 									writeValue(zw, out, opts, saveStatic);
 								}
@@ -569,7 +898,8 @@ public class Serializer {
 						}
 					} else {
 						out.write(OBJECT_UNKNOWN);
-						save(type, out, saveStatic);
+						writeString(out, val.getClass().getName());
+						save(val, out, saveStatic);
 					}
 				}
 			}
@@ -597,6 +927,13 @@ public class Serializer {
 		intToByteArr(bytes, 0, bytes.length);
 		System.arraycopy(zw, 0, bytes, Integer.BYTES, zw.length);
 		out.write(bytes);
+	}
+	
+	
+	private static int readInt(InputStream in) throws IOException {
+		byte[] bytes = new byte[Integer.BYTES];
+		in.read(bytes);
+		return byteArrToInt(bytes, 0);
 	}
 	
 	private static int byteArrToInt(byte[] bytes, int off) {

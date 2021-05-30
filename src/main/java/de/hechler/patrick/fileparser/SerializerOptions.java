@@ -15,7 +15,8 @@ public @interface SerializerOptions {
 	 * after each part of the selection is an {@link String#isEmpty() empty String}.<br>
 	 * the first part of a selection contains a method to get a {@code int}-size.<br>
 	 * the second part of a selection contains a method to get a element of a zero based index.<br>
-	 * the third part of a selection contains a method to set a element of a zero based {@code int} and the {@link java.lang.Object}-element to overwrite as params (first the index and then the element).<br>
+	 * the third part of a selection contains a method to set a element of a zero based {@code int} and the {@link java.lang.Object}-element to overwrite as params (first the index and then the
+	 * element).<br>
 	 * the fourth part of a selection is optional and contains a method to set the size by a {@code int}-number.<br>
 	 * the last element of each selection is an {@link String#isEmpty() empty String}, so at the end of a selection are two {@link String#isEmpty() empty Strings}.<br>
 	 * <br>
@@ -35,6 +36,16 @@ public @interface SerializerOptions {
 	 * @return a String[] containing above specified selections
 	 */
 	String[] saveFieldNames() default {};
+	
+	/**
+	 * the first {@link String} of the selection is the name of the class where this selection is active.<br>
+	 * the last {@link String} of the selection is the name of the method to call instead of an empty constructor (with no params). This method will return the new created instance, is static and accepts no params.<br>
+	 * if this selection contains three elements the second element will be the fully qualifying class name of the class where the method is.
+	 * to end the selection comes an empty string, which is not part of the selection itself.
+	 * 
+	 * @return a String[] containing multiple above specified selection
+	 */
+	String[] creator() default {};
 	
 	
 }
