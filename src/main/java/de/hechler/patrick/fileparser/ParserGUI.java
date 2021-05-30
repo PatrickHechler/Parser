@@ -1134,31 +1134,62 @@ public class ParserGUI extends JFrame {
 				// boolean err = false;
 				// ("<-print>");
 				// (" to print the parsed also to the default err");
+				// boolean silent = false;
+				// ("<--silent> or <--s>");
+				// (" to print the parsed not to the generated target file (if no target is set it will be generated from the name of the source file, but only if silent is not set)");
 				final JTextField outPrintField = new JTextField("also print parsed:");
 				outPrintField.setEditable(false);
 				final JComboBox <String> outPrintComboBox = new JComboBox <String>();
 				outPrintComboBox.addItem("nothing will be printed (except of the target file)");
 				outPrintComboBox.addItem("the default out will be printed too");
 				outPrintComboBox.addItem("the default err will be printed too");
-				outPrintComboBox.addItem("the default out andthe default err will be printed too");
+				outPrintComboBox.addItem("the default out and the default err will be printed too");
+				outPrintComboBox.addItem("the parser will output nothing (useless)");
+				outPrintComboBox.addItem("only the default out will be printed");
+				outPrintComboBox.addItem("only the default err will be printed too");
+				outPrintComboBox.addItem("only the default out and the default err will be printed too");
 				outPrintComboBox.addActionListener(a -> {
 					int i = outPrintComboBox.getSelectedIndex();
 					switch (i) {
 					case 0:
 						out = false;
 						err = false;
+						silent = false;
 						break;
 					case 1:
 						out = true;
 						err = false;
+						silent = false;
 						break;
 					case 2:
 						out = false;
 						err = true;
+						silent = false;
 						break;
 					case 3:
 						out = true;
 						err = true;
+						silent = false;
+						break;
+					case 4:
+						out = false;
+						err = false;
+						silent = true;
+						break;
+					case 5:
+						out = true;
+						err = false;
+						silent = true;
+						break;
+					case 6:
+						out = false;
+						err = true;
+						silent = true;
+						break;
+					case 7:
+						out = true;
+						err = true;
+						silent = true;
 						break;
 					default:
 						throw new InternalError("illegal selected index: " + i);
@@ -1173,12 +1204,6 @@ public class ParserGUI extends JFrame {
 				advancedOptionsComps.add(outPrintComboBox);
 				add(outPrintField);
 				add(outPrintComboBox);
-				
-				//TODO continue here
-				
-				// boolean silent = false;
-				// ("<--silent> or <--s>");
-				// (" to print the parsed not to the generated target file (if no target is set it will be generated from the name of the source file, but only if silent is not set)");
 				
 				
 				
@@ -1350,10 +1375,6 @@ public class ParserGUI extends JFrame {
 		
 		// repScrollBar.setBounds(0, 0, 10, replacesFrame.getBounds().height - 30);
 		// replacesFrame.add(repScrollBar);
-		
-		
-		
-		// TODO continue here
 	}
 	
 	private void setAllNull() {
