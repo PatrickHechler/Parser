@@ -181,11 +181,11 @@ public class ParserGUI extends JFrame {
 					JOptionPane.showMessageDialog(this, "i can not load from a folder! ('" + file.getPath() + "')", "NO FOLDERS!", JOptionPane.ERROR_MESSAGE);
 					return;
 				}
-				try {
-					Serializer.load(this, file);
-				} catch (IOException e1) {
-					e1.printStackTrace();
-				}
+				// try {
+//				Serializer.load(this, file);
+				// } catch (IOException e1) {
+				// e1.printStackTrace();
+				// }
 			}
 		});
 		final JButton saveArgsButton = new JButton("save");
@@ -203,11 +203,11 @@ public class ParserGUI extends JFrame {
 						return;
 					}
 				}
-				try {
-					Serializer.save(this, file, false);
-				} catch (IOException e1) {
-					e1.printStackTrace();
-				}
+				// try {
+//				Serializer.save(this, file, false);
+				// } catch (IOException e1) {
+				// e1.printStackTrace();
+				// }
 			}
 		});
 		int x = VOID, y = VOID;
@@ -1424,7 +1424,11 @@ public class ParserGUI extends JFrame {
 							if ( !"".equals(argSymbol)) {
 								args.add(argSymbol);
 							}
-							
+							if ((Boolean) val) {
+								args.add("true");
+							} else {
+								args.add("false");
+							}
 						} else if (type == String.class) {
 							if ( !"".equals(argSymbol)) {
 								args.add(argSymbol);
