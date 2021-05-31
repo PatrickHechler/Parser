@@ -49,7 +49,7 @@ public class ParserGUI extends JFrame {
 	private static final int LINE = Y + VOID;
 	
 	
-	private static final Serializer SERIALIZER = new Serializer(false, true, false, true, false);
+	private static final Serializer   SERIALIZER   = new Serializer(false, true, false, true, false);
 	private static final Deserializer DESERIALIZER = new Deserializer(Collections.emptyMap());
 	
 	public ParserGUI() {
@@ -110,7 +110,7 @@ public class ParserGUI extends JFrame {
 	@Arg("-explicitLineSep")
 	private Boolean   explicitLineSep          = null;
 	
-	public ParserGUI load() {
+	public ParserGUI load() throws UnsupportedCharsetException {
 		setTitle("ENTER ARGS");
 		setLayout(null);
 		setResizable(true);
@@ -178,26 +178,6 @@ public class ParserGUI extends JFrame {
 			r.runFinalization();
 			r.exit(0);
 		});
-		final JButton loadArgsButton = new JButton("load");
-		loadArgsButton.addActionListener(e -> {
-			int returnVal = argsFC.showOpenDialog(this);
-			if (returnVal == JFileChooser.APPROVE_OPTION) {
-				File file = argsFC.getSelectedFile();
-				if ( !Files.exists(file.toPath())) {
-					JOptionPane.showMessageDialog(this, "the file '" + file.getPath() + "' does not exsit!", "NO SUCH FILE!", JOptionPane.ERROR_MESSAGE);
-					return;
-				}
-				if (file.isDirectory()) {
-					JOptionPane.showMessageDialog(this, "i can not load from a folder! ('" + file.getPath() + "')", "NO FOLDERS!", JOptionPane.ERROR_MESSAGE);
-					return;
-				}
-				 try {
-					 DESERIALIZER.overwriteObject(new FileInputStream(file), this);
-				 } catch (IOException e1) {
-					 e1.printStackTrace();
-				 }
-			}
-		});
 		final JButton saveArgsButton = new JButton("save");
 		saveArgsButton.addActionListener(e -> {
 			int returnVal = argsFC.showSaveDialog(this);
@@ -213,24 +193,26 @@ public class ParserGUI extends JFrame {
 						return;
 					}
 				}
-				if (!file.getName().endsWith(".args")) {
+				if ( !file.getName().endsWith(".args")) {
 					file = new File(file.getPath() + ".args");
 				}
-				 try {
-					 SERIALIZER.writeObject(new FileOutputStream(file), this);
-				 } catch (IOException e1) {
-				 e1.printStackTrace();
-				 }
+				try {
+					SERIALIZER.writeObject(new FileOutputStream(file), this);
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
 			}
 		});
 		int x = VOID, y = VOID;
 		coniformButton.setBounds(x, y, FIRST_X, Y);
 		add(coniformButton);
 		x += VOID + FIRST_X;
+		final Rectangle loadArgsButtonBounds;
 		{
 			final int xWert = (SECOND_X - VOID) / 2;
-			loadArgsButton.setBounds(x, y, xWert, Y);
-			add(loadArgsButton);
+			loadArgsButtonBounds = new Rectangle(x, y, xWert, Y);
+			// .setBounds(x, y, xWert, Y);
+			// add(loadArgsButton);
 			x += VOID + xWert;
 			saveArgsButton.setBounds(x, y, xWert, Y);
 			add(saveArgsButton);
@@ -596,10 +578,10 @@ public class ParserGUI extends JFrame {
 			// ("<-ls> or <-lineStart> [LINE_START]");
 			// (" to set the start of each printed line");
 			final JTextPane lineStartText = new JTextPane();
-			lineStartText.setText("yout chosen line start");
+			lineStartText.setText("your chosen line start");
 			final JButton lineStartButton = new JButton("reset line start");
 			lineStartButton.addActionListener((a) -> {
-				lineStartText.setText("yout chosen line start");
+				lineStartText.setText("your chosen line start");
 				lineStart = null;
 			});
 			lineSepTField.addFocusListener(new FocusAdapter() {
@@ -660,9 +642,12 @@ public class ParserGUI extends JFrame {
 				int i = startAfterWhiteComboBox.getSelectedIndex();
 				switch (i) {
 				case 0:
-					startAfterWhite = true;
+					startAfterWhite = null;
 					break;
 				case 1:
+					startAfterWhite = true;
+					break;
+				case 2:
 					startAfterWhite = false;
 					break;
 				default:
@@ -1219,6 +1204,246 @@ public class ParserGUI extends JFrame {
 				add(outPrintComboBox);
 				
 				
+				final JButton loadArgsButton = new JButton("load");
+				loadArgsButton.addActionListener(e -> {
+					int returnVal = argsFC.showOpenDialog(this);
+					if (returnVal == JFileChooser.APPROVE_OPTION) {
+						File file = argsFC.getSelectedFile();
+						if ( !Files.exists(file.toPath())) {
+							JOptionPane.showMessageDialog(this, "the file '" + file.getPath() + "' does not exsit!", "NO SUCH FILE!", JOptionPane.ERROR_MESSAGE);
+							return;
+						}
+						if (file.isDirectory()) {
+							JOptionPane.showMessageDialog(this, "i can not load from a folder! ('" + file.getPath() + "')", "NO FOLDERS!", JOptionPane.ERROR_MESSAGE);
+							return;
+						}
+						try {
+							DESERIALIZER.overwriteObject(new FileInputStream(file), this);
+							{
+								// private boolean noFinish = false;
+								noFinishComboBox.setSelectedIndex(noFinish ? 1 : 0);
+								// private String template = null;
+								/*
+								//@formatter:off
+				template = "-arduino";
+0							templateOverComboBox.addItem("arduino with empty loop");
+				template = "-arduinoAsmLoop";
+1							templateOverComboBox.addItem("arduino with nearly empty loop");
+				template = "-arduinoPotLoop";
+2							templateOverComboBox.addItem("arduino with loop generated by <loop:> marks");
+				template = "-main";
+3							templateOverComboBox.addItem("c with main method");
+				template = "-empty";
+4							templateOverComboBox.addItem("empty template");
+				template = null;
+5							templateOverComboBox.addItem("no template {if you use this everithing has to be set}");
+								//@formatter:on
+								 */
+								if (template == null) {
+									templateOverComboBox.setSelectedIndex(5);
+								} else {
+									switch (template) {
+									case "-arduino":
+										templateOverComboBox.setSelectedIndex(0);
+										break;
+									case "-arduinoAsmLoop":
+										templateOverComboBox.setSelectedIndex(1);
+										break;
+									case "-arduinoPotLoop":
+										templateOverComboBox.setSelectedIndex(2);
+										break;
+									case "-main":
+										templateOverComboBox.setSelectedIndex(3);
+										break;
+									case "-empty":
+										templateOverComboBox.setSelectedIndex(4);
+										break;
+									default:
+										throw new IllegalStateException("illegal template: '" + template + "'");
+									}
+								}
+								// private String[] headLines = null;
+								if (headLines != null) {
+									StringBuilder build = new StringBuilder();
+									if (headLines.length > 0) {
+										build.append(headLines[0]);
+									}
+									for (int i = 1; i < headLines.length; i ++ ) {
+										build.append('\n').append(headLines[i]);
+									}
+								} else {
+									headLinesTestArea.setText(null);
+								}
+								
+								// private String[] tailLines = null;
+								if (tailLines != null) {
+									StringBuilder build = new StringBuilder();
+									if (tailLines.length > 0) {
+										build.append(tailLines[0]);
+									}
+									for (int i = 1; i < tailLines.length; i ++ ) {
+										build.append('\n').append(tailLines[i]);
+									}
+								} else {
+									tailLinesTestArea.setText("");
+								}
+								
+								// private String lineStart = null;
+								if (lineStart == null) {
+									lineStartText.setText("your chosen line start");
+								} else {
+									lineStartText.setText(lineStart);
+								}
+								// private String lineEnd = null;
+								if (lineEnd == null) {
+									lineEndText.setText("your chosen line end");
+								} else {
+									lineEndText.setText(lineEnd);
+								}
+								
+								// private Boolean lineEndAlsoOnTailLines = null;
+								lineEndAlsoOnTailLinesComboBox.setSelectedIndex(lineEndAlsoOnTailLines == null ? 0 : lineEndAlsoOnTailLines ? 2 : 1); // null=0, false=1, true=2
+								
+								// private Boolean lineEndAlsoOnHeadLines = null;
+								lineEndAlsoOnHeadLinesComboBox.setSelectedIndex(lineEndAlsoOnHeadLines == null ? 0 : lineEndAlsoOnHeadLines ? 2 : 1); // null=0, false=1, true=2
+								
+								// private Boolean lineStartAlsoOnTailLines = null;
+								lineStartAlsoOnTailLinesComboBox.setSelectedIndex(lineStartAlsoOnTailLines == null ? 0 : lineStartAlsoOnTailLines ? 2 : 1); // null=0, false=1, true=2
+								
+								// private Boolean lineStartAlsoOnHeadLines = null;
+								lineStartAlsoOnHeadLinesComboBox.setSelectedIndex(lineStartAlsoOnHeadLines == null ? 0 : lineStartAlsoOnHeadLines ? 2 : 1); // null=0, false=1, true=2
+								
+								// private boolean silent = false;
+								// private boolean out = false;
+								// private boolean err = false;
+								/*
+//@formatter:off
+					case 0: out = false,err = false,silent = false;
+					case 1: out = true ,err = false,silent = false;
+					case 2: out = false,err = true, silent = false;
+					case 3: out = true ,err = true, silent = false;
+					case 4: out = false,err = false,silent = true ;
+					case 5: out = true ,err = false,silent = true ;
+					case 6: out = false,err = true, silent = true ;
+					case 7: out = true ,err = true, silent = true ;
+								 */
+								outPrintComboBox.setSelectedIndex(
+										silent 	? (err  ? (out ? 7 : 6)
+														: (out ? 5 : 4)) 
+												: (err  ? (out ? 3 : 2)
+														: (out ? 1 : 0)));
+//@formatter:on
+								
+								// private String src = null;
+								if (src == null) {
+									srcText.setText("source file");
+								} else {
+									srcText.setText(src);
+								}
+								// private String dest = null;
+								if (dest == null) {
+									destText.setText("target file");
+								} else {
+									destText.setText(dest);
+								}
+								
+								// private boolean forceOverrde = false;
+								forceOverComboBox.setSelectedIndex(forceOverrde ? 1 : 0);
+								
+								// private String charset = null;
+								if (charset != null) {
+									try {
+										Charset.forName(charset);
+									} catch (IllegalArgumentException e1) {
+										JOptionPane.showMessageDialog(this, "the charset could not be loaded", e1.getClass().getSimpleName(), JOptionPane.ERROR_MESSAGE);
+									}
+									charsetTPane.setText(charset);
+								} else {
+									charsetTPane.setText("");
+								}
+								
+								// private String asmCommentSymbol = null;
+								if (asmCommentSymbol != null) {
+									asmCommentSymbolTextPane.setText(asmCommentSymbol);
+								} else {
+									asmCommentSymbolTextPane.setText("define your unparsed commend symbol here");
+								}
+								
+								// private String parsedCommentSymbol = null;
+								if (parsedCommentSymbol != null) {
+									parsedCommentSymbolTextPane.setText(parsedCommentSymbol);
+								} else {
+									parsedCommentSymbolTextPane.setText("define your parsed commend symbol here");
+								}
+								
+								// private String commentEndLine = null;
+								if (commentEndLine != null) {
+									commentEndLineTextPane.setText(commentEndLine);
+								} else {
+									commentEndLineTextPane.setText("define your comment end Line here");
+								}
+								
+								// private Boolean supressCommentExtraction = null;
+								supressCommentExtractionCB.setSelectedIndex(supressCommentExtraction == null ? 0 : (supressCommentExtraction ? 2 : 1)); // null=0,false=1,true=2
+								
+								// private Boolean startAfterWhite = null;
+								startAfterWhiteComboBox.setSelectedIndex(startAfterWhite == null ? 0 : (startAfterWhite ? 1 : 2)); // null=0,true=1,false=2
+								
+								// private String lineSep = null;
+								/*
+//@formatter:off
+			case 0:
+				lineSep = null;
+				break;
+			case 1:
+				lineSep = "CR LF";
+				break;
+			case 2:
+				lineSep = "CR";
+				break;
+			case 3:
+				lineSep = "LF";
+//@formatter:on
+								 */
+								if (lineSep != null) {
+									switch (lineSep) {
+									case "CR LF":
+										lineSepComboBox.setSelectedIndex(1);
+										break;
+									case "CR":
+										lineSepComboBox.setSelectedIndex(2);
+										break;
+									case "LF":
+										lineSepComboBox.setSelectedIndex(3);
+										break;
+									default:
+										lineSepComboBox.setSelectedIndex(0);
+										JOptionPane.showMessageDialog(this, "illegal line separator: {'" + lineSep.replaceAll("\r", "\\[CR\\]").replaceAll("\n", "\\[LF\\]").replaceAll("\t", "\\[TAB\\]") + "'}",
+												"illegal line separator", JOptionPane.ERROR_MESSAGE);
+									}
+								} else {
+									lineSepComboBox.setSelectedIndex(0);
+								}
+								
+//								private Replace[] replaces                 = null;
+								// TODO possibly do something here
+								
+//								private Boolean   onlyRepsAfterReplace     = null;
+								onlyReplacesWhenReplacedCB.setSelectedIndex(onlyRepsAfterReplace == null ? 0 : onlyRepsAfterReplace ? 2 : 1);//null,false,true
+								
+//								private Boolean   supressReplaces          = null;
+								supressReplacesComboBox.setSelectedIndex(supressReplaces == null ? 0 : supressReplaces ? 2 : 1);//null,false,true
+								
+//								private Boolean   explicitLineSep          = null;
+								explicitLineSepComboBox.setSelectedIndex(explicitLineSep == null ? 0 : explicitLineSep ? 2 : 1);//null,false,true
+							}
+						} catch (IOException e1) {
+							e1.printStackTrace();
+						}
+					}
+				});
+				loadArgsButton.setBounds(loadArgsButtonBounds);
+				add(loadArgsButton);
 				
 				{// all options button
 					allOptionsButton.addActionListener(a -> {
@@ -1280,6 +1505,7 @@ public class ParserGUI extends JFrame {
 		}
 		
 		add(advancedOptionsButton);
+		
 		
 		setVisible(true);
 		toFront();
