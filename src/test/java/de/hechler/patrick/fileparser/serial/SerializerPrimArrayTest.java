@@ -659,56 +659,57 @@ public class SerializerPrimArrayTest extends Checker {
 		BigArraysBean babNul = new BigArraysBean();
 		baos = new ByteArrayOutputStream();
 		serializer.writeObject(baos, babNul);
-		DoubleArrBean readBabNul = readObject(DoubleArrBean.class, new ByteArrayInputStream(baos.toByteArray()));
+		BigArraysBean readBabNul = readObject(BigArraysBean.class, new ByteArrayInputStream(baos.toByteArray()));
 		assertEquals(babNul, readBabNul);
 		
 		BigArraysBean babZero = new BigArraysBean();
 		babZero.generateAll(0, 0, 0, 0, 0, 0, 0, 0);
 		baos = new ByteArrayOutputStream();
 		serializer.writeObject(baos, babZero);
-		DoubleArrBean readBabZero = readObject(DoubleArrBean.class, new ByteArrayInputStream(baos.toByteArray()));
+		BigArraysBean readBabZero = readObject(BigArraysBean.class, new ByteArrayInputStream(baos.toByteArray()));
 		assertEquals(babZero, readBabZero);
 		
 		BigArraysBean babOne = new BigArraysBean();
 		babOne.generateAll(1, 1, 1, 1, 1, 1, 1, 1);
 		baos = new ByteArrayOutputStream();
 		serializer.writeObject(baos, babOne);
-		DoubleArrBean readBabOne = readObject(DoubleArrBean.class, new ByteArrayInputStream(baos.toByteArray()));
+		BigArraysBean readBabOne = readObject(BigArraysBean.class, new ByteArrayInputStream(baos.toByteArray()));
 		assertEquals(babOne, readBabOne);
 		
 		BigArraysBean babTen = new BigArraysBean();
 		babTen.generateAll(10, 10, 10, 10, 10, 10, 10, 10);
 		baos = new ByteArrayOutputStream();
 		serializer.writeObject(baos, babTen);
-		DoubleArrBean readBabTen = readObject(DoubleArrBean.class, new ByteArrayInputStream(baos.toByteArray()));
+		BigArraysBean readBabTen = readObject(BigArraysBean.class, new ByteArrayInputStream(baos.toByteArray()));
 		assertEquals(babTen, readBabTen);
 		
 		BigArraysBean babPartial1 = new BigArraysBean();
 		babPartial1.generateAll(-1, -1, -1, -1, 10, 10, 10, 10);
 		baos = new ByteArrayOutputStream();
 		serializer.writeObject(baos, babPartial1);
-		DoubleArrBean readBabPartial1 = readObject(DoubleArrBean.class, new ByteArrayInputStream(baos.toByteArray()));
+		BigArraysBean readBabPartial1 = readObject(BigArraysBean.class, new ByteArrayInputStream(baos.toByteArray()));
 		assertEquals(babPartial1, readBabPartial1);
 
 		BigArraysBean babPartial2 = new BigArraysBean();
 		babPartial2.generateAll(10, 10, 10, 10, -1, -1, -1, -1);
 		baos = new ByteArrayOutputStream();
 		serializer.writeObject(baos, babPartial2);
-		DoubleArrBean readBabPartial2 = readObject(DoubleArrBean.class, new ByteArrayInputStream(baos.toByteArray()));
+		BigArraysBean readBabPartial2 = readObject(BigArraysBean.class, new ByteArrayInputStream(baos.toByteArray()));
 		assertEquals(babPartial2, readBabPartial2);
 
 		BigArraysBean babPartial3 = new BigArraysBean();
 		babPartial3.generateAll(10, -1, 10, -1, 10, -1, 10, -1);
 		baos = new ByteArrayOutputStream();
 		serializer.writeObject(baos, babPartial3);
-		DoubleArrBean readBabPartial3 = readObject(DoubleArrBean.class, new ByteArrayInputStream(baos.toByteArray()));
+		BigArraysBean readBabPartial3 = readObject(BigArraysBean.class, new ByteArrayInputStream(baos.toByteArray()));
 		assertEquals(babPartial3, readBabPartial3);
 
 		BigArraysBean babHuge = new BigArraysBean();
-		babHuge.generateAll(1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000);
+		babHuge.generateAll(100000, 100000, 100000, 100000, 100000, 100000, 100000, 100000);
+		assertEquals(babHuge.toString(), "[booleans:100000,bytes:100000,shorts:100000,chars:100000,ints:100000,longs:100000,floats:100000,doubles:100000]");
 		baos = new ByteArrayOutputStream();
 		serializer.writeObject(baos, babHuge);
-		DoubleArrBean readBabHuge = readObject(DoubleArrBean.class, new ByteArrayInputStream(baos.toByteArray()));
+		BigArraysBean readBabHuge = readObject(BigArraysBean.class, new ByteArrayInputStream(baos.toByteArray()));
 		assertEquals(babHuge, readBabHuge);
 	}
 
