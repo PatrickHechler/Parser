@@ -1,6 +1,7 @@
 package de.hechler.patrick.fileparser.serial;
 
 import static de.hechler.patrick.fileparser.serial.SerialConsts.ARRAY;
+import static de.hechler.patrick.fileparser.serial.SerialConsts.NON_PRIMITIVE_BOOLEAN;
 import static de.hechler.patrick.fileparser.serial.SerialConsts.NON_PRIMITIVE_BYTE;
 import static de.hechler.patrick.fileparser.serial.SerialConsts.NON_PRIMITIVE_CHAR;
 import static de.hechler.patrick.fileparser.serial.SerialConsts.NON_PRIMITIVE_DOUBLE;
@@ -57,6 +58,9 @@ public class Serializer {
 			} else if (cls == String.class) {
 				out.write(STRING);
 				writeString(out, (String) val);
+			} else if (cls == Boolean.class) {
+				out.write(NON_PRIMITIVE_BOOLEAN);
+				out.write( ((boolean) (Boolean) val) ? 1 : 0);
 			} else if (cls == Integer.class) {
 				out.write(NON_PRIMITIVE_INT);
 				writeInt(out, (int) (Integer) val);
@@ -72,7 +76,7 @@ public class Serializer {
 				short s = (short) (Short) val;
 				byte[] bytes = new byte[2];
 				bytes[0] = (byte) s;
-				bytes[1] = (byte) (s << 8);
+				bytes[1] = (byte) (s >> 8);
 				out.write(bytes);
 			} else if (cls == Double.class) {
 				out.write(NON_PRIMITIVE_DOUBLE);
@@ -87,7 +91,7 @@ public class Serializer {
 				char s = (char) (Character) val;
 				byte[] bytes = new byte[2];
 				bytes[0] = (byte) s;
-				bytes[1] = (byte) (s << 8);
+				bytes[1] = (byte) (s >> 8);
 				out.write(bytes);
 			} else {
 				out.write(OBJECT);
@@ -138,11 +142,6 @@ public class Serializer {
 				}
 			}
 		}
-	}
-	
-	public static void main(String[] args) {
-		System.out.println(Object[][][].class.getComponentType());
-		System.out.println(Object[].class.getComponentType());
 	}
 	
 	private void writeArray(OutputStream out, Object arr) throws IOException {

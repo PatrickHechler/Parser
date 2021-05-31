@@ -39,7 +39,7 @@ public class Parser {
 	}
 	
 	private void println(PrintStream output) {
-		if (properties.explicitLineSep) {
+		if (!properties.explicitLineSep) {
 			output.print(properties.lineSeparator);
 		}
 	}
@@ -47,7 +47,7 @@ public class Parser {
 	private void println(PrintStream output, String str) {
 		str = str.replaceAll(lsregex, properties.lineSeparator);
 		output.print(str);
-		if (properties.explicitLineSep) {
+		if (!properties.explicitLineSep) {
 			output.print(properties.lineSeparator);
 		}
 	}
@@ -96,12 +96,16 @@ public class Parser {
 				print(output, whitespace);
 				print(output, properties.lineStart);
 			} else print(output, properties.lineStart);
-			int ci = line.indexOf(properties.unparsedCommentSymbol);
-			if (ci > -1) {
-				comment = line.substring(ci + properties.unparsedCommentSymbol.length());
-				line = line.substring(0, ci);
-				print(output, line);
-				comment = properties.parsedCommentSymbol.concat(comment);
+			if ( !properties.unparsedCommentSymbol.isEmpty()) {
+				int ci = line.indexOf(properties.unparsedCommentSymbol);
+				if (ci > -1) {
+					comment = line.substring(ci + properties.unparsedCommentSymbol.length());
+					line = line.substring(0, ci);
+					print(output, line);
+					comment = properties.parsedCommentSymbol.concat(comment);
+				} else {
+					print(output, line);
+				}
 			} else {
 				print(output, line);
 			}
