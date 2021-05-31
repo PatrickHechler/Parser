@@ -9,7 +9,6 @@ import java.awt.event.HierarchyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.Field;
 import java.nio.charset.Charset;
 import java.nio.charset.IllegalCharsetNameException;
@@ -107,7 +106,7 @@ public class ParserGUI extends JFrame {
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		final Rectangle boundsNormal = new Rectangle(0, 0, 640, 285);
 		final Rectangle boundsAdvanced = new Rectangle(0, 0, 640, 465);
-		final Rectangle boundsAll = new Rectangle(0, 0, 640, 1005);
+		final Rectangle boundsAll = new Rectangle(0, 0, 640, 885);
 		setBounds(boundsNormal);
 		setLocationRelativeTo(null);
 		final JFileChooser argsFC = new JFileChooser();
