@@ -274,7 +274,7 @@ public class Serializer {
 	
 	private static void writeString(OutputStream out, String write) throws IOException {
 		byte[] zw = write.getBytes(StandardCharsets.UTF_8);
-		byte[] bytes = new byte[zw.length + 8];
+		byte[] bytes = new byte[zw.length + 4];
 		intToBytes(bytes, 0, zw.length);
 		System.arraycopy(zw, 0, bytes, 4, zw.length);
 		out.write(bytes);
@@ -295,7 +295,7 @@ public class Serializer {
 		bytes[off] = (byte) val;
 		bytes[off + 1] = (byte) (val >> 8);
 		bytes[off + 2] = (byte) (val >> 16);
-		bytes[off + 4] = (byte) (val >> 24);
+		bytes[off + 3] = (byte) (val >> 24);
 	}
 	
 }

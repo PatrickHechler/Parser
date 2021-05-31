@@ -79,16 +79,16 @@ public class Deserializer {
 				// }
 				boolean wa = field.isAccessible();
 				field.setAccessible(true);
-				boolean wf = Dirty.removeFinal(field);
-				Object obj = readObject(in);
+//				boolean wf = Dirty.removeFinal(field);
+				Object obj = readAny(in);
 				try {
 					field.set(val, obj);
 				} catch (IllegalArgumentException | IllegalAccessException e) {
 					throw new InternalError(e);
 				}
-				if (wf) {
-					Dirty.addFinal(field);
-				}
+//				if (wf) {
+//					Dirty.addFinal(field);
+//				}
 				field.setAccessible(wa);
 				// fields[i].setAccessible(flag);
 				// } catch(IllegalAccessException e) {
@@ -119,8 +119,26 @@ public class Deserializer {
 		}
 	}
 	
-	private Object readObject(InputStream in) throws IOException {
+	private Object readAny(InputStream in) throws IOException {
+		int zw = assertRead(in, OBJECT, ARRAY,PRIMITIVE);
+		switch(zw) {
+		case 0:
+			return readObject0(in);
+		case 1:
+			return readArray(in);
+		case 2:
+			return readPrimitive(in);
+		default:
+			throw new InternalError("illegal index: " + zw);
+		}
+	}
+
+	public Object readObject(InputStream in) throws IOException {
 		assertRead(in, OBJECT);
+		return readObject0(in);
+	}
+
+	private Object readObject0(InputStream in) throws IOException, InternalError, NoClassDefFoundError {
 		int zw = assertRead(in, NULL, ARRAY, NON_PRIMITIVE_BOOLEAN, NON_PRIMITIVE_INT, NON_PRIMITIVE_LONG, NON_PRIMITIVE_BYTE, NON_PRIMITIVE_SHORT, NON_PRIMITIVE_DOUBLE, NON_PRIMITIVE_FLOAT, NON_PRIMITIVE_CHAR,
 				STRING, OBJECT);
 		switch (zw) {
@@ -197,12 +215,14 @@ public class Deserializer {
 					}
 				}
 				overwriteObject2(in, instance, cls);
+				return instance;
 			} catch (ClassNotFoundException e) {
 				e.printStackTrace();
 				throw new NoClassDefFoundError(clsName);
 			}
+		default:
+			throw new InternalError("illegal index: " + zw);
 		}
-		throw new RuntimeException("not done yet!");
 	}
 	
 	private Object readArray(InputStream in) throws IOException {
@@ -395,9 +415,9 @@ public class Deserializer {
 		byte[] bytes = new byte[4];
 		in.read(bytes);
 		ret = bytes[0] & 0xFF;
-		ret = (bytes[1] & 0xFF) << 8;
-		ret = (bytes[2] & 0xFF) << 16;
-		ret = (bytes[3] & 0xFF) << 24;
+		ret |= (bytes[1] & 0xFF) << 8;
+		ret |= (bytes[2] & 0xFF) << 16;
+		ret |= (bytes[3] & 0xFF) << 24;
 		return ret;
 	}
 	
