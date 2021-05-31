@@ -140,33 +140,83 @@ public class Serializer {
 		}
 	}
 	
+	public static void main(String[] args) {
+		System.out.println(Object[][][].class.getComponentType());
+		System.out.println(Object[].class.getComponentType());
+	}
+	
 	private void writeArray(OutputStream out, Object arr) throws IOException {
 		if (arr == null) throw new NullPointerException("can't write null array value'");
 		Class <?> cls = arr.getClass();
 		if ( !cls.isArray()) throw new IllegalArgumentException("can't write non array array! cls: '" + cls + "' val: '" + arr + "'");
 		out.write(ARRAY);
-		int deep = 0;
-		boolean primComps;
-		String name = cls.getName();
-		for (char[] chars = name.toCharArray(); true; deep ++ ) {
-			if (chars[deep] != '[') {
-				primComps = chars[deep] != 'L';
-				break;
+		Class <?> comp = cls.getComponentType();
+		if (comp.isArray()) {
+			out.write(ARRAY);
+			int deep = 2;// 1 for itself, 2 for componentType, 3 will come if first ultimateComp is also array
+			Class <?> ultimateComp = comp.getComponentType();
+			while (ultimateComp.isArray()) {
+				ultimateComp = comp.getComponentType();
+				deep ++ ;
 			}
-		}
-		if (primComps) {
+			writeInt(out, deep);
+			if (ultimateComp.isPrimitive()) {
+				out.write(PRIMITIVE);
+				if (comp == Boolean.TYPE) {
+					out.write(PRIMITIVE_BOOLEAN);
+				} else if (comp == Byte.TYPE) {
+					out.write(PRIMITIVE_BYTE);
+				} else if (comp == Integer.TYPE) {
+					out.write(PRIMITIVE_INT);
+				} else if (comp == Long.TYPE) {
+					out.write(PRIMITIVE_LONG);
+				} else if (comp == Short.TYPE) {
+					out.write(PRIMITIVE_SHORT);
+				} else if (comp == Double.TYPE) {
+					out.write(PRIMITIVE_DOUBLE);
+				} else if (comp == Float.TYPE) {
+					out.write(PRIMITIVE_FLOAT);
+				} else if (comp == Character.TYPE) {
+					out.write(PRIMITIVE_CHAR);
+				} else {
+					throw new InternalError("unknown primitive type: " + comp);
+				}
+			} else {
+				out.write(OBJECT);
+				writeString(out, ultimateComp.getName());
+			}
+		} else if (comp.isPrimitive()) {
 			out.write(PRIMITIVE);
+			if (comp == Boolean.TYPE) {
+				out.write(PRIMITIVE_BOOLEAN);
+			} else if (comp == Byte.TYPE) {
+				out.write(PRIMITIVE_BYTE);
+			} else if (comp == Integer.TYPE) {
+				out.write(PRIMITIVE_INT);
+			} else if (comp == Long.TYPE) {
+				out.write(PRIMITIVE_LONG);
+			} else if (comp == Short.TYPE) {
+				out.write(PRIMITIVE_SHORT);
+			} else if (comp == Double.TYPE) {
+				out.write(PRIMITIVE_DOUBLE);
+			} else if (comp == Float.TYPE) {
+				out.write(PRIMITIVE_FLOAT);
+			} else if (comp == Character.TYPE) {
+				out.write(PRIMITIVE_CHAR);
+			} else {
+				throw new InternalError("unknown primitive type: " + comp);
+			}
 		} else {
 			out.write(OBJECT);
-			writeInt(out, deep);
-			writeString(out, name.substring(deep + 1));
+			writeString(out, comp.getName());
 		}
-		writeInt(out, deep);
 		int len = Array.getLength(arr);
 		writeInt(out, len);
 		for (int i = 0; i < len; i ++ ) {
 			Object wt = Array.get(arr, i);
-			if (primComps) {
+			if (comp.isArray()) {
+				writeArray(out, wt);
+			} else if (comp.isPrimitive()) {
 				writePrimitive(out, wt);
 			} else {
 				writeObject(out, wt);
@@ -215,7 +265,7 @@ public class Serializer {
 			char s = (char) (Character) val;
 			byte[] bytes = new byte[2];
 			bytes[0] = (byte) s;
-			bytes[1] = (byte) (s << 8);
+			bytes[1] = (byte) (s >> 8);
 			out.write(bytes);
 		} else {
 			throw new IllegalArgumentException("this is no primitive type wrapped in an Object: class='" + cls + "' obj='" + val + "'");

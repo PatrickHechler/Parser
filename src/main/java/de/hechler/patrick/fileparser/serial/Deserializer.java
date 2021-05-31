@@ -1,12 +1,13 @@
 package de.hechler.patrick.fileparser.serial;
 
-import static de.hechler.patrick.fileparser.serial.SerialConsts.NULL;
-import static de.hechler.patrick.fileparser.serial.SerialConsts.OBJECT;
-import static de.hechler.patrick.fileparser.serial.SerialConsts.identyToStringOrElse;
+import static de.hechler.patrick.fileparser.serial.SerialConsts.*;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Array;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
@@ -15,9 +16,9 @@ import java.util.Map;
 
 public class Deserializer {
 	
-	private final Map<Class<?>, Method> creates;
+	private final Map <Class <?>, Method> creates;
 	
-	public Deserializer(Map<Class<?>, Method> creates) {
+	public Deserializer(Map <Class <?>, Method> creates) {
 		this.creates = Collections.unmodifiableMap(new HashMap <>(creates));
 	}
 	
@@ -34,6 +35,10 @@ public class Deserializer {
 				throw new NoClassDefFoundError(clsName);
 			}
 		}
+		overwriteObject2(in, val, cls);
+	}
+	
+	private void overwriteObject2(InputStream in, Object val, Class <?> cls) throws IOException, InternalError {
 		val.getClass().asSubclass(cls);
 		// while (true) {
 		// Field[] fields = cls.getDeclaredFields();
@@ -115,29 +120,258 @@ public class Deserializer {
 	}
 	
 	private Object readObject(InputStream in) throws IOException {
-		// TODO Auto-generated method stub
-		return null;
+		assertRead(in, OBJECT);
+		int zw = assertRead(in, NULL, ARRAY, NON_PRIMITIVE_BOOLEAN, NON_PRIMITIVE_INT, NON_PRIMITIVE_LONG, NON_PRIMITIVE_BYTE, NON_PRIMITIVE_SHORT, NON_PRIMITIVE_DOUBLE, NON_PRIMITIVE_FLOAT, NON_PRIMITIVE_CHAR,
+				STRING, OBJECT);
+		switch (zw) {
+		case 0: // NULL
+			return null;
+		case 1: // ARRAY
+			return readArray(in);
+		case 2: // NON_PRIMITIVE_BOOLEAN
+			return (Boolean) (assertRead(in, 0, 1) == 1);
+		case 3: // NON_PRIMITIVE_INT
+			return (Integer) readInt(in);
+		case 4: // NON_PRIMITIVE_LONG
+			return (Long) readLong(in);
+		case 5: // NON_PRIMITIVE_BYTE
+			return (Byte) (byte) in.read();
+		case 6: {// NON_PRIMITIVE_SHORT
+			byte[] bytes = new byte[2];
+			in.read(bytes);
+			short s = (short) (bytes[0] & 0xFF);
+			s |= (short) ( (bytes[1] << 8) & 0xFF);
+			return (Short) s;
+		}
+		case 7: // NON_PRIMITIVE_DOUBLE
+			return (Double) Double.longBitsToDouble(readLong(in));
+		case 8: // NON_PRIMITIVE_FLOAT
+			return (Float) Float.intBitsToFloat(readInt(in));
+		case 9: {// NON_PRIMITIVE_CHAR
+			byte[] bytes = new byte[2];
+			in.read(bytes);
+			char s = (char) (bytes[0] & 0xFF);
+			s |= (char) ( (bytes[1] << 8) & 0xFF);
+			return (Character) s;
+		}
+		case 10: // STRING
+			return readString(in);
+		case 11: // OBJECT
+			// Class <?> cls;
+			// {
+			// String clsName = readString(in);
+			// try {
+			// cls = Class.forName(clsName);
+			// } catch (ClassNotFoundException e) {
+			// e.printStackTrace();
+			// throw new NoClassDefFoundError(clsName);
+			// }
+			// }
+			String clsName = readString(in);
+			try {
+				Class <?> cls = Class.forName(clsName);
+				Object instance;
+				if (creates.containsKey(cls)) {
+					try {
+						Method creator = creates.get(cls);
+						instance = creator.invoke(null);
+						if (instance == null) {
+							throw new NullPointerException("creator returned null. creator: " + creator);
+						}
+					} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+						throw new InternalError(e);
+					}
+				} else {
+					try {
+						Constructor <?> creator = cls.getDeclaredConstructor();
+						try {
+							boolean flag = creator.isAccessible();
+							creator.setAccessible(true);
+							instance = creator.newInstance();
+							creator.setAccessible(flag);
+						} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+							throw new InternalError(e);
+						}
+					} catch (NoSuchMethodException | SecurityException e) {
+						throw new InternalError(e);
+					}
+				}
+				overwriteObject2(in, instance, cls);
+			} catch (ClassNotFoundException e) {
+				e.printStackTrace();
+				throw new NoClassDefFoundError(clsName);
+			}
+		}
+		throw new RuntimeException("not done yet!");
 	}
 	
-	public static int assertRead(InputStream in, int... values) throws IOException {
+	private Object readArray(InputStream in) throws IOException {
+		int deep = 1;
+		Class <?> ultimateComp;
+		int zw = assertRead(in, PRIMITIVE, OBJECT, ARRAY);
+		switch (zw) {
+		case 0:// PRIMITIVE
+			zw = assertRead(in, PRIMITIVE_BOOLEAN, PRIMITIVE_BYTE, PRIMITIVE_CHAR, PRIMITIVE_DOUBLE, PRIMITIVE_FLOAT, PRIMITIVE_INT, PRIMITIVE_LONG, PRIMITIVE_SHORT);
+			switch (zw) {
+			case 0:// boolean
+				ultimateComp = Boolean.TYPE;
+				break;
+			case 1:// byte
+				ultimateComp = Byte.TYPE;
+				break;
+			case 2:// char
+				ultimateComp = Character.TYPE;
+				break;
+			case 3:// double
+				ultimateComp = Double.TYPE;
+				break;
+			case 4:// float
+				ultimateComp = Float.TYPE;
+				break;
+			case 5:// int
+				ultimateComp = Integer.TYPE;
+				break;
+			case 6:// long
+				ultimateComp = Long.TYPE;
+				break;
+			case 7:// short
+				ultimateComp = Short.TYPE;
+				break;
+			default:
+				throw new InternalError("illegal index: " + zw);
+			}
+			break;
+		case 1:// OBJECT
+			try {
+				String clsName = readString(in);
+				ultimateComp = Class.forName(clsName);
+			} catch (ClassNotFoundException e) {
+				throw new InternalError(e);
+			}
+			break;
+		case 2: {// ARRAY
+			deep = readInt(in);
+			zw = assertRead(in, PRIMITIVE, OBJECT);
+			switch (zw) {
+			case 0:// primitive
+				zw = assertRead(in, PRIMITIVE_BOOLEAN, PRIMITIVE_BYTE, PRIMITIVE_CHAR, PRIMITIVE_DOUBLE, PRIMITIVE_FLOAT, PRIMITIVE_INT, PRIMITIVE_LONG, PRIMITIVE_SHORT);
+				switch (zw) {
+				case 0:// boolean
+					ultimateComp = Boolean.TYPE;
+					break;
+				case 1:// byte
+					ultimateComp = Byte.TYPE;
+					break;
+				case 2:// char
+					ultimateComp = Character.TYPE;
+					break;
+				case 3:// double
+					ultimateComp = Double.TYPE;
+					break;
+				case 4:// float
+					ultimateComp = Float.TYPE;
+					break;
+				case 5:// int
+					ultimateComp = Integer.TYPE;
+					break;
+				case 6:// long
+					ultimateComp = Long.TYPE;
+					break;
+				case 7:// short
+					ultimateComp = Short.TYPE;
+					break;
+				default:
+					throw new InternalError("illegal index: " + zw);
+				}
+				break;
+			case 1:// non primitive
+				try {
+					String clsName = readString(in);
+					ultimateComp = Class.forName(clsName);
+				} catch (ClassNotFoundException e) {
+					throw new InternalError(e);
+				}
+				break;
+			default:
+				throw new InternalError("illegal index: " + zw);
+			}
+			break;
+		}
+		default:
+			throw new InternalError("illegal index: " + zw);
+		}
+		int[] len = new int[deep];
+		len[0] = readInt(in);
+		Object arr = Array.newInstance(ultimateComp, len);
+		for (int i = 0; i < len[0]; i ++ ) {
+			Object read;
+			if (deep > 1) {
+				assertRead(in, ARRAY);
+				read = readArray(in);
+			} else if (ultimateComp.isPrimitive()) {
+				assertRead(in, PRIMITIVE);
+				read = readPrimitive(in);
+			} else {
+				assertRead(in, OBJECT);
+				read = readObject(in);
+			}
+			Array.set(arr, i, read);
+		}
+		return arr;
+	}
+	
+	private Object readPrimitive(InputStream in) throws IOException {
+		int zw = assertRead(in, PRIMITIVE_BOOLEAN, PRIMITIVE_BYTE, PRIMITIVE_CHAR, PRIMITIVE_DOUBLE, PRIMITIVE_FLOAT, PRIMITIVE_INT, PRIMITIVE_LONG, PRIMITIVE_SHORT);
+		switch (zw) {
+		case 0:// boolean
+			return assertRead(in, 0, 1) == 1;
+		case 1:// byte
+			return (Byte) (byte) in.read();
+		case 2: {// char
+			byte[] bytes = new byte[2];
+			in.read(bytes);
+			char c = (char) (bytes[0] & 0xFF);
+			c |= (char) ( (bytes[1] & 0xFF) << 8);
+			return (Character) c;
+		}
+		case 3:// double
+			return (Double) Double.longBitsToDouble(readLong(in));
+		case 4:// float
+			return (Float) Float.intBitsToFloat(readInt(in));
+		case 5:// int
+			return (Integer) readInt(in);
+		case 6:// long
+			return (Long) readLong(in);
+		case 7:// short
+			byte[] bytes = new byte[2];
+			in.read(bytes);
+			short c = (short) (bytes[0] & 0xFF);
+			c |= (short) ( (bytes[1] & 0xFF) << 8);
+			return (Short) c;
+		default:
+			throw new InternalError("illegal index: " + zw);
+		}
+	}
+	
+	public static int assertRead(InputStream in, int... possibleValues) throws IOException {
 		int val = in.read();
-		for (int i = 0; i < values.length; i ++ ) {
-			if (val == values[i]) return i;
+		for (int i = 0; i < possibleValues.length; i ++ ) {
+			if (val == possibleValues[i]) return i;
 		}
 		// "asserted to read '" + Arrays.toString(values) + "' (" + identyToStringOrElse(value, "no identy") + "), but got " + val
 		StringBuilder errMsg = new StringBuilder("asserted to read [");
-		if (values.length > 0) {
-			errMsg.append(values[0]);
+		if (possibleValues.length > 0) {
+			errMsg.append(possibleValues[0]);
 		}
-		for (int i = 1; i < values.length; i ++ ) {
-			errMsg.append(", ").append(values[i]);
+		for (int i = 1; i < possibleValues.length; i ++ ) {
+			errMsg.append(", ").append(possibleValues[i]);
 		}
 		errMsg.append("] in identys: [");
-		if (values.length > 0) {
-			errMsg.append(identyToStringOrElse(values[0], "no identy"));
+		if (possibleValues.length > 0) {
+			errMsg.append(identyToStringOrElse(possibleValues[0], "no identy"));
 		}
-		for (int i = 1; i < values.length; i ++ ) {
-			errMsg.append(", ").append(identyToStringOrElse(values[i], "no identy"));
+		for (int i = 1; i < possibleValues.length; i ++ ) {
+			errMsg.append(", ").append(identyToStringOrElse(possibleValues[i], "no identy"));
 		}
 		errMsg.append("], but got: ").append(val).append(" identy: ").append(identyToStringOrElse(val, "no identy"));
 		throw new AssertionError(errMsg.toString());
@@ -148,6 +382,12 @@ public class Deserializer {
 		byte[] bytes = new byte[len];
 		in.read(bytes);
 		return new String(bytes, StandardCharsets.UTF_8);
+	}
+	
+	private static long readLong(InputStream in) throws IOException {
+		long val = (long) readInt(in);
+		val |= ((long) readInt(in)) << 32;
+		return val;
 	}
 	
 	private static int readInt(InputStream in) throws IOException {
