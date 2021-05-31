@@ -158,7 +158,7 @@ public class Deserializer {
 			byte[] bytes = new byte[2];
 			in.read(bytes);
 			short s = (short) (bytes[0] & 0xFF);
-			s |= (short) ( (bytes[1] << 8) & 0xFF);
+			s |= (short) ( (bytes[1] & 0xFF) << 8);
 			return (Short) s;
 		}
 		case 7: // NON_PRIMITIVE_DOUBLE
@@ -169,7 +169,7 @@ public class Deserializer {
 			byte[] bytes = new byte[2];
 			in.read(bytes);
 			char s = (char) (bytes[0] & 0xFF);
-			s |= (char) ( (bytes[1] << 8) & 0xFF);
+			s |= (char) ( (bytes[1] & 0xFF) << 8);
 			return (Character) s;
 		}
 		case 10: // STRING

@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Scanner;
 
 import de.hechler.patrick.zeugs.check.*;
@@ -50,12 +51,13 @@ public class ParserChecker extends Checker {
 	
 	@Check
 	void checkEmptyTemplate() {
-		String str = "this is a nice text.\nIt will be unchanged!\n\n\t\t\n  \n".replaceAll("(\r\n)|\r|\n", "\\\r\\\n");
+		String str = "this is a nice text.\nIt will be unchanged!\n\n\t\t\n  \n".replaceAll("(\r\n)|\r|\n", System.lineSeparator());
 		bais = new ByteArrayInputStream(str.getBytes(StandardCharsets.UTF_8));
 		scanner = new Scanner(bais, StandardCharsets.UTF_8.name());
 		parser.parse(scanner, print);
 		print.flush();
-		assertEquals(str, new String(baos.toByteArray(), StandardCharsets.UTF_8));
+		String rebuild = new String(baos.toByteArray(), StandardCharsets.UTF_8);
+		assertEquals(str, rebuild);
 	}
 	
 }
