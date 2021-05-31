@@ -15,18 +15,18 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Deserializer {
-	
-	private final Map <Class <?>, Method> creates;
-	
-	public Deserializer(Map <Class <?>, Method> creates) {
-		this.creates = Collections.unmodifiableMap(new HashMap <>(creates));
+
+	private final Map<Class<?>, Method> creates;
+
+	public Deserializer(Map<Class<?>, Method> creates) {
+		this.creates = Collections.unmodifiableMap(new HashMap<>(creates));
 	}
-	
+
 	// public void writeObject(OutputStream out, Object val) throws IOException {
 	public void overwriteObject(InputStream in, Object val) throws IOException {
 		assertRead(in, OBJECT);
-		Class <?> cls;
-		{
+		assertRead(in, OBJECT);//either OBJECT, PRIMITIVE or ARRAY, but here it has to be OBJECT, because it has to be the object of val 
+			Class<?> cls; {
 			String clsName = readString(in);
 			try {
 				cls = Class.forName(clsName);
@@ -37,8 +37,8 @@ public class Deserializer {
 		}
 		overwriteObject2(in, val, cls);
 	}
-	
-	private void overwriteObject2(InputStream in, Object val, Class <?> cls) throws IOException, InternalError {
+
+	private void overwriteObject2(InputStream in, Object val, Class<?> cls) throws IOException, InternalError {
 		val.getClass().asSubclass(cls);
 		// while (true) {
 		// Field[] fields = cls.getDeclaredFields();
@@ -56,7 +56,7 @@ public class Deserializer {
 			// writeInt(out, fields.length);
 			int len = readInt(in);
 			// for (int i = 0; i < fields.length; i ++) {
-			for (int i = 0; i < len; i ++ ) {
+			for (int i = 0; i < len; i++) {
 				// writeString(out, fields[i].getName());
 				Field field;
 				{
@@ -67,7 +67,7 @@ public class Deserializer {
 						throw new InternalError(e);
 					}
 				}
-				
+
 				// Class <?> ft = fields[i].getType();
 				// try {
 				// boolean flag = fields[i].isAccessible();
@@ -115,13 +115,13 @@ public class Deserializer {
 			} else {// OBJECT
 				cls = cls.getSuperclass();
 			}
-			
+
 		}
 	}
-	
+
 	private Object readAny(InputStream in) throws IOException {
-		int zw = assertRead(in, OBJECT, ARRAY,PRIMITIVE);
-		switch(zw) {
+		int zw = assertRead(in, OBJECT, ARRAY, PRIMITIVE);
+		switch (zw) {
 		case 0:
 			return readObject0(in);
 		case 1:
@@ -139,7 +139,8 @@ public class Deserializer {
 	}
 
 	private Object readObject0(InputStream in) throws IOException, InternalError, NoClassDefFoundError {
-		int zw = assertRead(in, NULL, ARRAY, NON_PRIMITIVE_BOOLEAN, NON_PRIMITIVE_INT, NON_PRIMITIVE_LONG, NON_PRIMITIVE_BYTE, NON_PRIMITIVE_SHORT, NON_PRIMITIVE_DOUBLE, NON_PRIMITIVE_FLOAT, NON_PRIMITIVE_CHAR,
+		int zw = assertRead(in, NULL, ARRAY, NON_PRIMITIVE_BOOLEAN, NON_PRIMITIVE_INT, NON_PRIMITIVE_LONG,
+				NON_PRIMITIVE_BYTE, NON_PRIMITIVE_SHORT, NON_PRIMITIVE_DOUBLE, NON_PRIMITIVE_FLOAT, NON_PRIMITIVE_CHAR,
 				STRING, OBJECT);
 		switch (zw) {
 		case 0: // NULL
@@ -158,7 +159,7 @@ public class Deserializer {
 			byte[] bytes = new byte[2];
 			in.read(bytes);
 			short s = (short) (bytes[0] & 0xFF);
-			s |= (short) ( (bytes[1] & 0xFF) << 8);
+			s |= (short) ((bytes[1] & 0xFF) << 8);
 			return (Short) s;
 		}
 		case 7: // NON_PRIMITIVE_DOUBLE
@@ -169,7 +170,7 @@ public class Deserializer {
 			byte[] bytes = new byte[2];
 			in.read(bytes);
 			char s = (char) (bytes[0] & 0xFF);
-			s |= (char) ( (bytes[1] & 0xFF) << 8);
+			s |= (char) ((bytes[1] & 0xFF) << 8);
 			return (Character) s;
 		}
 		case 10: // STRING
@@ -187,7 +188,7 @@ public class Deserializer {
 			// }
 			String clsName = readString(in);
 			try {
-				Class <?> cls = Class.forName(clsName);
+				Class<?> cls = Class.forName(clsName);
 				Object instance;
 				if (creates.containsKey(cls)) {
 					try {
@@ -201,13 +202,14 @@ public class Deserializer {
 					}
 				} else {
 					try {
-						Constructor <?> creator = cls.getDeclaredConstructor();
+						Constructor<?> creator = cls.getDeclaredConstructor();
 						try {
 							boolean flag = creator.isAccessible();
 							creator.setAccessible(true);
 							instance = creator.newInstance();
 							creator.setAccessible(flag);
-						} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+						} catch (InstantiationException | IllegalAccessException | IllegalArgumentException
+								| InvocationTargetException e) {
 							throw new InternalError(e);
 						}
 					} catch (NoSuchMethodException | SecurityException e) {
@@ -224,14 +226,15 @@ public class Deserializer {
 			throw new InternalError("illegal index: " + zw);
 		}
 	}
-	
+
 	private Object readArray(InputStream in) throws IOException {
 		int deep = 1;
-		Class <?> ultimateComp;
+		Class<?> ultimateComp;
 		int zw = assertRead(in, PRIMITIVE, OBJECT, ARRAY);
 		switch (zw) {
 		case 0:// PRIMITIVE
-			zw = assertRead(in, PRIMITIVE_BOOLEAN, PRIMITIVE_BYTE, PRIMITIVE_CHAR, PRIMITIVE_DOUBLE, PRIMITIVE_FLOAT, PRIMITIVE_INT, PRIMITIVE_LONG, PRIMITIVE_SHORT);
+			zw = assertRead(in, PRIMITIVE_BOOLEAN, PRIMITIVE_BYTE, PRIMITIVE_CHAR, PRIMITIVE_DOUBLE, PRIMITIVE_FLOAT,
+					PRIMITIVE_INT, PRIMITIVE_LONG, PRIMITIVE_SHORT);
 			switch (zw) {
 			case 0:// boolean
 				ultimateComp = Boolean.TYPE;
@@ -274,7 +277,8 @@ public class Deserializer {
 			zw = assertRead(in, PRIMITIVE, OBJECT);
 			switch (zw) {
 			case 0:// primitive
-				zw = assertRead(in, PRIMITIVE_BOOLEAN, PRIMITIVE_BYTE, PRIMITIVE_CHAR, PRIMITIVE_DOUBLE, PRIMITIVE_FLOAT, PRIMITIVE_INT, PRIMITIVE_LONG, PRIMITIVE_SHORT);
+				zw = assertRead(in, PRIMITIVE_BOOLEAN, PRIMITIVE_BYTE, PRIMITIVE_CHAR, PRIMITIVE_DOUBLE,
+						PRIMITIVE_FLOAT, PRIMITIVE_INT, PRIMITIVE_LONG, PRIMITIVE_SHORT);
 				switch (zw) {
 				case 0:// boolean
 					ultimateComp = Boolean.TYPE;
@@ -323,7 +327,7 @@ public class Deserializer {
 		int[] len = new int[deep];
 		len[0] = readInt(in);
 		Object arr = Array.newInstance(ultimateComp, len);
-		for (int i = 0; i < len[0]; i ++ ) {
+		for (int i = 0; i < len[0]; i++) {
 			Object read;
 			if (deep > 1) {
 				assertRead(in, ARRAY);
@@ -339,9 +343,10 @@ public class Deserializer {
 		}
 		return arr;
 	}
-	
+
 	private Object readPrimitive(InputStream in) throws IOException {
-		int zw = assertRead(in, PRIMITIVE_BOOLEAN, PRIMITIVE_BYTE, PRIMITIVE_CHAR, PRIMITIVE_DOUBLE, PRIMITIVE_FLOAT, PRIMITIVE_INT, PRIMITIVE_LONG, PRIMITIVE_SHORT);
+		int zw = assertRead(in, PRIMITIVE_BOOLEAN, PRIMITIVE_BYTE, PRIMITIVE_CHAR, PRIMITIVE_DOUBLE, PRIMITIVE_FLOAT,
+				PRIMITIVE_INT, PRIMITIVE_LONG, PRIMITIVE_SHORT);
 		switch (zw) {
 		case 0:// boolean
 			return assertRead(in, 0, 1) == 1;
@@ -351,7 +356,7 @@ public class Deserializer {
 			byte[] bytes = new byte[2];
 			in.read(bytes);
 			char c = (char) (bytes[0] & 0xFF);
-			c |= (char) ( (bytes[1] & 0xFF) << 8);
+			c |= (char) ((bytes[1] & 0xFF) << 8);
 			return (Character) c;
 		}
 		case 3:// double
@@ -366,50 +371,52 @@ public class Deserializer {
 			byte[] bytes = new byte[2];
 			in.read(bytes);
 			short c = (short) (bytes[0] & 0xFF);
-			c |= (short) ( (bytes[1] & 0xFF) << 8);
+			c |= (short) ((bytes[1] & 0xFF) << 8);
 			return (Short) c;
 		default:
 			throw new InternalError("illegal index: " + zw);
 		}
 	}
-	
+
 	public static int assertRead(InputStream in, int... possibleValues) throws IOException {
 		int val = in.read();
-		for (int i = 0; i < possibleValues.length; i ++ ) {
-			if (val == possibleValues[i]) return i;
+		for (int i = 0; i < possibleValues.length; i++) {
+			if (val == possibleValues[i])
+				return i;
 		}
-		// "asserted to read '" + Arrays.toString(values) + "' (" + identyToStringOrElse(value, "no identy") + "), but got " + val
+		// "asserted to read '" + Arrays.toString(values) + "' (" +
+		// identyToStringOrElse(value, "no identy") + "), but got " + val
 		StringBuilder errMsg = new StringBuilder("asserted to read [");
 		if (possibleValues.length > 0) {
 			errMsg.append(possibleValues[0]);
 		}
-		for (int i = 1; i < possibleValues.length; i ++ ) {
+		for (int i = 1; i < possibleValues.length; i++) {
 			errMsg.append(", ").append(possibleValues[i]);
 		}
 		errMsg.append("] in identys: [");
 		if (possibleValues.length > 0) {
 			errMsg.append(identyToStringOrElse(possibleValues[0], "no identy"));
 		}
-		for (int i = 1; i < possibleValues.length; i ++ ) {
+		for (int i = 1; i < possibleValues.length; i++) {
 			errMsg.append(", ").append(identyToStringOrElse(possibleValues[i], "no identy"));
 		}
 		errMsg.append("], but got: ").append(val).append(" identy: ").append(identyToStringOrElse(val, "no identy"));
 		throw new AssertionError(errMsg.toString());
 	}
-	
+
 	private static String readString(InputStream in) throws IOException {
 		int len = readInt(in);
 		byte[] bytes = new byte[len];
 		in.read(bytes);
 		return new String(bytes, StandardCharsets.UTF_8);
 	}
-	
+
 	private static long readLong(InputStream in) throws IOException {
 		long val = ((long) readInt(in)) & 0xFFFFFFFFL;
-		val |= (((long) readInt(in)) & 0xFFFFFFFF)<< 32;
+		val |= (((long) readInt(in)) & 0xFFFFFFFF) << 32;
 		return val;
 	}
-	
+
 	private static int readInt(InputStream in) throws IOException {
 		int ret = 0;
 		byte[] bytes = new byte[4];
@@ -420,6 +427,5 @@ public class Deserializer {
 		ret |= (bytes[3] & 0xFF) << 24;
 		return ret;
 	}
-	
-	
+
 }

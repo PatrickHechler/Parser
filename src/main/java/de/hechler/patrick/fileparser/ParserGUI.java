@@ -9,6 +9,9 @@ import java.awt.event.HierarchyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.nio.charset.Charset;
 import java.nio.charset.IllegalCharsetNameException;
@@ -16,6 +19,7 @@ import java.nio.charset.UnsupportedCharsetException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 
@@ -29,6 +33,9 @@ import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import javax.swing.filechooser.FileFilter;
 
+import de.hechler.patrick.fileparser.serial.Deserializer;
+import de.hechler.patrick.fileparser.serial.Serializer;
+
 public class ParserGUI extends JFrame {
 	
 	/** UID */
@@ -40,6 +47,10 @@ public class ParserGUI extends JFrame {
 	
 	private static final int Y    = 20;
 	private static final int LINE = Y + VOID;
+	
+	
+	private static final Serializer SERIALIZER = new Serializer(false, true, false, true, false);
+	private static final Deserializer DESERIALIZER = new Deserializer(Collections.emptyMap());
 	
 	public ParserGUI() {
 	}
@@ -180,11 +191,11 @@ public class ParserGUI extends JFrame {
 					JOptionPane.showMessageDialog(this, "i can not load from a folder! ('" + file.getPath() + "')", "NO FOLDERS!", JOptionPane.ERROR_MESSAGE);
 					return;
 				}
-				// try {
-//				Serializer.load(this, file);
-				// } catch (IOException e1) {
-				// e1.printStackTrace();
-				// }
+				 try {
+					 DESERIALIZER.overwriteObject(new FileInputStream(file), this);
+				 } catch (IOException e1) {
+					 e1.printStackTrace();
+				 }
 			}
 		});
 		final JButton saveArgsButton = new JButton("save");
@@ -202,11 +213,14 @@ public class ParserGUI extends JFrame {
 						return;
 					}
 				}
-				// try {
-//				Serializer.save(this, file, false);
-				// } catch (IOException e1) {
-				// e1.printStackTrace();
-				// }
+				if (!file.getName().endsWith(".args")) {
+					file = new File(file.getPath() + ".args");
+				}
+				 try {
+					 SERIALIZER.writeObject(new FileOutputStream(file), this);
+				 } catch (IOException e1) {
+				 e1.printStackTrace();
+				 }
 			}
 		});
 		int x = VOID, y = VOID;
