@@ -250,7 +250,7 @@ public class Serializer {
 			short s = (short) (Short) val;
 			byte[] bytes = new byte[2];
 			bytes[0] = (byte) s;
-			bytes[1] = (byte) (s << 8);
+			bytes[1] = (byte) (s >> 8);
 			out.write(bytes);
 		} else if (cls == Double.class) {
 			out.write(PRIMITIVE_DOUBLE);
