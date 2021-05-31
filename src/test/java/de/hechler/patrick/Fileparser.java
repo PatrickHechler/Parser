@@ -2,6 +2,7 @@ package de.hechler.patrick;
 
 import de.hechler.patrick.fileparser.ParserChecker;
 import de.hechler.patrick.fileparser.serial.SerializerObjectsTest;
+import de.hechler.patrick.fileparser.serial.SerializerPrimArrayTest;
 import de.hechler.patrick.fileparser.serial.SerializerPrimitivesTest;
 import de.hechler.patrick.zeugs.check.Checker;
 import de.hechler.patrick.zeugs.check.Checker.BigCheckResult;
@@ -10,7 +11,7 @@ import de.hechler.patrick.zeugs.check.exceptions.CheckerNotEqualsExeption;
 public class Fileparser {
 	
 	public static void main(String[] args) {
-		BigCheckResult res = Checker.checkAll(true, ParserChecker.class, SerializerObjectsTest.class, SerializerPrimitivesTest.class);
+		BigCheckResult res = Checker.checkAll(true, ParserChecker.class, SerializerObjectsTest.class, SerializerPrimitivesTest.class, SerializerPrimArrayTest.class);
 		res.print();
 		res.forAllUnexpected((c, m, t) -> {
 			System.err.println(c + "  ->  " + m + ":");
