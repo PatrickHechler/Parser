@@ -405,8 +405,8 @@ public class Deserializer {
 	}
 	
 	private static long readLong(InputStream in) throws IOException {
-		long val = (long) readInt(in);
-		val |= ((long) readInt(in)) << 32;
+		long val = ((long) readInt(in)) & 0xFFFFFFFFL;
+		val |= (((long) readInt(in)) & 0xFFFFFFFF)<< 32;
 		return val;
 	}
 	

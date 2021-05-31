@@ -67,7 +67,37 @@ public class SerializerTest extends Checker {
 			IntBean other = (IntBean) obj;
 			return value1 == other.value1 && value2 == other.value2;
 		}
-		
+	}
+	
+	public static class LongBean {
+		public long value1;
+		public long value2;
+		public LongBean() {
+			this(0L,0L);
+		}
+		public LongBean(long value1, long value2) {
+			this.value1 = value1;
+			this.value2 = value2;
+		}
+		@Override
+		public String toString() {
+			return "[" + value1 + "," + value2 + "]";
+		}
+		@Override
+		public int hashCode() {
+			return Objects.hash(value1, value2);
+		}
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			LongBean other = (LongBean) obj;
+			return value1 == other.value1 && value2 == other.value2;
+		}
 	}
 	
 	@Check
@@ -94,6 +124,34 @@ public class SerializerTest extends Checker {
 		baos = new ByteArrayOutputStream();
 		serializer.writeObject(baos, seq);
 		IntBean readSeq = readObject(IntBean.class, new ByteArrayInputStream(baos.toByteArray()));
+		assertEquals(seq, readSeq);
+		
+	}
+	
+	@Check
+	public void testSerializeLong() throws IOException {
+		LongBean zero = new LongBean(0,0);
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		serializer.writeObject(baos, zero);
+		LongBean readZero = readObject(LongBean.class, new ByteArrayInputStream(baos.toByteArray()));
+		assertEquals(zero, readZero);
+		
+		LongBean max = new LongBean(Long.MAX_VALUE, Long.MAX_VALUE);
+		baos = new ByteArrayOutputStream();
+		serializer.writeObject(baos, max);
+		LongBean readMax = readObject(LongBean.class, new ByteArrayInputStream(baos.toByteArray()));
+		assertEquals(max, readMax);
+		
+		LongBean min = new LongBean(Long.MIN_VALUE, Long.MIN_VALUE);
+		baos = new ByteArrayOutputStream();
+		serializer.writeObject(baos, min);
+		LongBean readMin = readObject(LongBean.class, new ByteArrayInputStream(baos.toByteArray()));
+		assertEquals(min, readMin);
+		
+		LongBean seq = new LongBean(1234567890123456789L, 987654321098765432L);
+		baos = new ByteArrayOutputStream();
+		serializer.writeObject(baos, seq);
+		LongBean readSeq = readObject(LongBean.class, new ByteArrayInputStream(baos.toByteArray()));
 		assertEquals(seq, readSeq);
 		
 	}
