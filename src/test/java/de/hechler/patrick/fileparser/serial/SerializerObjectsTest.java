@@ -14,8 +14,8 @@ import de.hechler.patrick.zeugs.check.anotations.Start;
 
 @CheckClass
 public class SerializerObjectsTest extends Checker {
-
-	Serializer serializer;
+	
+	Serializer   serializer;
 	Deserializer deserializer;
 	
 	@Start
@@ -25,39 +25,46 @@ public class SerializerObjectsTest extends Checker {
 	}
 	
 	
-	public <T> T readObject(Class<T> tClazz, InputStream in) throws IOException {
+	public <T> T readObject(Class <T> tClazz, InputStream in) throws IOException {
 		return readObject(deserializer, tClazz, in);
 	}
-	public static <T> T readObject(Deserializer deser, Class<T> tClazz, InputStream in) throws IOException {
+	
+	public static <T> T readObject(Deserializer deser, Class <T> tClazz, InputStream in) throws IOException {
 		Object result = deser.readObject(in);
 		if (result == null) {
 			return null;
 		}
-		if (!tClazz.isInstance(result)) {
-			fail("Wrong instance read: "+ result.getClass().getName()+" instead of "+tClazz.getName());
+		if ( !tClazz.isInstance(result)) {
+			fail("Wrong instance read: " + result.getClass().getName() + " instead of " + tClazz.getName());
 		}
 		return tClazz.cast(result);
 	}
-
+	
 	
 	public static class BooleanObjBean {
+		
 		public Boolean value1;
 		public Boolean value2;
+		
 		public BooleanObjBean() {
-			this(null,null);
+			this(null, null);
 		}
+		
 		public BooleanObjBean(Boolean value1, Boolean value2) {
 			this.value1 = value1;
 			this.value2 = value2;
 		}
+		
 		@Override
 		public String toString() {
 			return "[" + value1 + "," + value2 + "]";
 		}
+		
 		@Override
 		public int hashCode() {
 			return Objects.hash(value1, value2);
 		}
+		
 		@Override
 		public boolean equals(Object obj) {
 			if (this == obj) return true;
@@ -65,26 +72,33 @@ public class SerializerObjectsTest extends Checker {
 			BooleanObjBean other = (BooleanObjBean) obj;
 			return Objects.equals(value1, other.value1) && Objects.equals(value2, other.value2);
 		}
+		
 	}
 	
 	public static class ByteObjBean {
+		
 		public Byte value1;
 		public Byte value2;
+		
 		public ByteObjBean() {
-			this(null,null);
+			this(null, null);
 		}
+		
 		public ByteObjBean(Byte value1, Byte value2) {
 			this.value1 = value1;
 			this.value2 = value2;
 		}
+		
 		@Override
 		public String toString() {
 			return "[" + value1 + "," + value2 + "]";
 		}
+		
 		@Override
 		public int hashCode() {
 			return Objects.hash(value1, value2);
 		}
+		
 		@Override
 		public boolean equals(Object obj) {
 			if (this == obj) return true;
@@ -92,26 +106,33 @@ public class SerializerObjectsTest extends Checker {
 			ByteObjBean other = (ByteObjBean) obj;
 			return Objects.equals(value1, other.value1) && Objects.equals(value2, other.value2);
 		}
+		
 	}
 	
 	public static class CharObjBean {
+		
 		public Character value1;
 		public Character value2;
+		
 		public CharObjBean() {
-			this(null,null);
+			this(null, null);
 		}
+		
 		public CharObjBean(Character value1, Character value2) {
 			this.value1 = value1;
 			this.value2 = value2;
 		}
+		
 		@Override
 		public String toString() {
 			return "[" + value1 + "," + value2 + "]";
 		}
+		
 		@Override
 		public int hashCode() {
 			return Objects.hash(value1, value2);
 		}
+		
 		@Override
 		public boolean equals(Object obj) {
 			if (this == obj) return true;
@@ -119,26 +140,33 @@ public class SerializerObjectsTest extends Checker {
 			CharObjBean other = (CharObjBean) obj;
 			return Objects.equals(value1, other.value1) && Objects.equals(value2, other.value2);
 		}
+		
 	}
-
+	
 	public static class ShortObjBean {
+		
 		public Short value1;
 		public Short value2;
+		
 		public ShortObjBean() {
-			this(null,null);
+			this(null, null);
 		}
+		
 		public ShortObjBean(Short value1, Short value2) {
 			this.value1 = value1;
 			this.value2 = value2;
 		}
+		
 		@Override
 		public String toString() {
 			return "[" + value1 + "," + value2 + "]";
 		}
+		
 		@Override
 		public int hashCode() {
 			return Objects.hash(value1, value2);
 		}
+		
 		@Override
 		public boolean equals(Object obj) {
 			if (this == obj) return true;
@@ -146,26 +174,33 @@ public class SerializerObjectsTest extends Checker {
 			ShortObjBean other = (ShortObjBean) obj;
 			return Objects.equals(value1, other.value1) && Objects.equals(value2, other.value2);
 		}
+		
 	}
 	
 	public static class IntObjBean {
+		
 		public Integer value1;
 		public Integer value2;
+		
 		public IntObjBean() {
-			this(null,null);
+			this(null, null);
 		}
+		
 		public IntObjBean(Integer value1, Integer value2) {
 			this.value1 = value1;
 			this.value2 = value2;
 		}
+		
 		@Override
 		public String toString() {
 			return "[" + value1 + "," + value2 + "]";
 		}
+		
 		@Override
 		public int hashCode() {
 			return Objects.hash(value1, value2);
 		}
+		
 		@Override
 		public boolean equals(Object obj) {
 			if (this == obj) return true;
@@ -173,53 +208,67 @@ public class SerializerObjectsTest extends Checker {
 			IntObjBean other = (IntObjBean) obj;
 			return Objects.equals(value1, other.value1) && Objects.equals(value2, other.value2);
 		}
+		
 	}
 	
 	public static class LongObjBean {
+		
 		public Long value1;
 		public Long value2;
+		
 		public LongObjBean() {
-			this(null,null);
+			this(null, null);
 		}
+		
 		public LongObjBean(Long value1, Long value2) {
 			this.value1 = value1;
 			this.value2 = value2;
 		}
+		
 		@Override
 		public String toString() {
 			return "[" + value1 + "," + value2 + "]";
 		}
+		
 		@Override
 		public int hashCode() {
 			return Objects.hash(value1, value2);
 		}
+		
 		@Override
 		public boolean equals(Object obj) {
 			if (this == obj) return true;
 			if ( ! (obj instanceof LongObjBean)) return false;
 			LongObjBean other = (LongObjBean) obj;
-			return Objects.equals(value1, other.value1) && value2 == other.value2;
+			return Objects.equals(value1, other.value1) && Objects.equals(value2, other.value2);
 		}
+		
 	}
 	
 	public static class FloatObjBean {
+		
 		public Float value1;
 		public Float value2;
+		
 		public FloatObjBean() {
-			this(null,null);
+			this(null, null);
 		}
-		public FloatObjBean(Float value1, Float value2) { 
+		
+		public FloatObjBean(Float value1, Float value2) {
 			this.value1 = value1;
 			this.value2 = value2;
 		}
+		
 		@Override
 		public String toString() {
 			return "[" + value1 + "," + value2 + "]";
 		}
+		
 		@Override
 		public int hashCode() {
 			return Objects.hash(value1, value2);
 		}
+		
 		@Override
 		public boolean equals(Object obj) {
 			if (this == obj) return true;
@@ -227,26 +276,33 @@ public class SerializerObjectsTest extends Checker {
 			FloatObjBean other = (FloatObjBean) obj;
 			return Objects.equals(value1, other.value1) && Objects.equals(value2, other.value2);
 		}
+		
 	}
 	
 	public static class DoubleObjBean {
+		
 		public Double value1;
 		public Double value2;
+		
 		public DoubleObjBean() {
-			this(null,null);
+			this(null, null);
 		}
-		public DoubleObjBean(Double value1, Double value2) { 
+		
+		public DoubleObjBean(Double value1, Double value2) {
 			this.value1 = value1;
 			this.value2 = value2;
 		}
+		
 		@Override
 		public String toString() {
 			return "[" + value1 + "," + value2 + "]";
 		}
+		
 		@Override
 		public int hashCode() {
 			return Objects.hash(value1, value2);
 		}
+		
 		@Override
 		public boolean equals(Object obj) {
 			if (this == obj) return true;
@@ -254,9 +310,10 @@ public class SerializerObjectsTest extends Checker {
 			DoubleObjBean other = (DoubleObjBean) obj;
 			return Objects.equals(value1, other.value1) && Objects.equals(value2, other.value2);
 		}
+		
 	}
 	
-
+	
 	@Check
 	public void testSerializeBooleanObj() throws IOException {
 		BooleanObjBean nul = new BooleanObjBean(null, null);
@@ -277,7 +334,7 @@ public class SerializerObjectsTest extends Checker {
 		BooleanObjBean readNul2 = readObject(BooleanObjBean.class, new ByteArrayInputStream(baos.toByteArray()));
 		assertEquals(nul2, readNul2);
 		
-		BooleanObjBean zero = new BooleanObjBean(false,false);
+		BooleanObjBean zero = new BooleanObjBean(false, false);
 		baos = new ByteArrayOutputStream();
 		serializer.writeObject(baos, zero);
 		BooleanObjBean readZero = readObject(BooleanObjBean.class, new ByteArrayInputStream(baos.toByteArray()));
@@ -301,7 +358,7 @@ public class SerializerObjectsTest extends Checker {
 		BooleanObjBean readMix2 = readObject(BooleanObjBean.class, new ByteArrayInputStream(baos.toByteArray()));
 		assertEquals(mix2, readMix2);
 	}
-
+	
 	@Check
 	public void testSerializeByte() throws IOException {
 		ByteObjBean nul = new ByteObjBean(null, null);
@@ -310,19 +367,19 @@ public class SerializerObjectsTest extends Checker {
 		ByteObjBean readNul = readObject(ByteObjBean.class, new ByteArrayInputStream(baos.toByteArray()));
 		assertEquals(nul, readNul);
 		
-		ByteObjBean nul1 = new ByteObjBean(null, (byte)-1);
+		ByteObjBean nul1 = new ByteObjBean(null, (byte) -1);
 		baos = new ByteArrayOutputStream();
 		serializer.writeObject(baos, nul1);
 		ByteObjBean readNul1 = readObject(ByteObjBean.class, new ByteArrayInputStream(baos.toByteArray()));
 		assertEquals(nul1, readNul1);
 		
-		ByteObjBean nul2 = new ByteObjBean((byte)0, null);
+		ByteObjBean nul2 = new ByteObjBean((byte) 0, null);
 		baos = new ByteArrayOutputStream();
 		serializer.writeObject(baos, nul2);
 		ByteObjBean readNul2 = readObject(ByteObjBean.class, new ByteArrayInputStream(baos.toByteArray()));
 		assertEquals(nul2, readNul2);
-
-		ByteObjBean zero = new ByteObjBean((byte)0,(byte)0);
+		
+		ByteObjBean zero = new ByteObjBean((byte) 0, (byte) 0);
 		baos = new ByteArrayOutputStream();
 		serializer.writeObject(baos, zero);
 		ByteObjBean readZero = readObject(ByteObjBean.class, new ByteArrayInputStream(baos.toByteArray()));
@@ -340,7 +397,7 @@ public class SerializerObjectsTest extends Checker {
 		ByteObjBean readMin = readObject(ByteObjBean.class, new ByteArrayInputStream(baos.toByteArray()));
 		assertEquals(min, readMin);
 		
-		ByteObjBean seq = new ByteObjBean((byte)123, (byte)-98);
+		ByteObjBean seq = new ByteObjBean((byte) 123, (byte) -98);
 		baos = new ByteArrayOutputStream();
 		serializer.writeObject(baos, seq);
 		ByteObjBean readSeq = readObject(ByteObjBean.class, new ByteArrayInputStream(baos.toByteArray()));
@@ -355,19 +412,19 @@ public class SerializerObjectsTest extends Checker {
 		ShortObjBean readNul = readObject(ShortObjBean.class, new ByteArrayInputStream(baos.toByteArray()));
 		assertEquals(nul, readNul);
 		
-		ShortObjBean nul1 = new ShortObjBean(null, (short)-1);
+		ShortObjBean nul1 = new ShortObjBean(null, (short) -1);
 		baos = new ByteArrayOutputStream();
 		serializer.writeObject(baos, nul1);
 		ShortObjBean readNul1 = readObject(ShortObjBean.class, new ByteArrayInputStream(baos.toByteArray()));
 		assertEquals(nul1, readNul1);
 		
-		ShortObjBean nul2 = new ShortObjBean((short)0, null);
+		ShortObjBean nul2 = new ShortObjBean((short) 0, null);
 		baos = new ByteArrayOutputStream();
 		serializer.writeObject(baos, nul2);
 		ShortObjBean readNul2 = readObject(ShortObjBean.class, new ByteArrayInputStream(baos.toByteArray()));
 		assertEquals(nul2, readNul2);
-
-		ShortObjBean zero = new ShortObjBean((short)0,(short)0);
+		
+		ShortObjBean zero = new ShortObjBean((short) 0, (short) 0);
 		baos = new ByteArrayOutputStream();
 		serializer.writeObject(baos, zero);
 		ShortObjBean readZero = readObject(ShortObjBean.class, new ByteArrayInputStream(baos.toByteArray()));
@@ -385,7 +442,7 @@ public class SerializerObjectsTest extends Checker {
 		ShortObjBean readMin = readObject(ShortObjBean.class, new ByteArrayInputStream(baos.toByteArray()));
 		assertEquals(min, readMin);
 		
-		ShortObjBean seq = new ShortObjBean((short)12356, (short)21098);
+		ShortObjBean seq = new ShortObjBean((short) 12356, (short) 21098);
 		baos = new ByteArrayOutputStream();
 		serializer.writeObject(baos, seq);
 		ShortObjBean readSeq = readObject(ShortObjBean.class, new ByteArrayInputStream(baos.toByteArray()));
@@ -400,19 +457,19 @@ public class SerializerObjectsTest extends Checker {
 		CharObjBean readNul = readObject(CharObjBean.class, new ByteArrayInputStream(baos.toByteArray()));
 		assertEquals(nul, readNul);
 		
-		CharObjBean nul1 = new CharObjBean(null, (char)-1);
+		CharObjBean nul1 = new CharObjBean(null, (char) -1);
 		baos = new ByteArrayOutputStream();
 		serializer.writeObject(baos, nul1);
 		CharObjBean readNul1 = readObject(CharObjBean.class, new ByteArrayInputStream(baos.toByteArray()));
 		assertEquals(nul1, readNul1);
 		
-		CharObjBean nul2 = new CharObjBean((char)0, null);
+		CharObjBean nul2 = new CharObjBean((char) 0, null);
 		baos = new ByteArrayOutputStream();
 		serializer.writeObject(baos, nul2);
 		CharObjBean readNul2 = readObject(CharObjBean.class, new ByteArrayInputStream(baos.toByteArray()));
 		assertEquals(nul2, readNul2);
-
-		CharObjBean zero = new CharObjBean((char)0,(char)0);
+		
+		CharObjBean zero = new CharObjBean((char) 0, (char) 0);
 		baos = new ByteArrayOutputStream();
 		serializer.writeObject(baos, zero);
 		CharObjBean readZero = readObject(CharObjBean.class, new ByteArrayInputStream(baos.toByteArray()));
@@ -430,7 +487,7 @@ public class SerializerObjectsTest extends Checker {
 		CharObjBean readMin = readObject(CharObjBean.class, new ByteArrayInputStream(baos.toByteArray()));
 		assertEquals(min, readMin);
 		
-		CharObjBean seq = new CharObjBean((char)12356, (char)21098);
+		CharObjBean seq = new CharObjBean((char) 12356, (char) 21098);
 		baos = new ByteArrayOutputStream();
 		serializer.writeObject(baos, seq);
 		CharObjBean readSeq = readObject(CharObjBean.class, new ByteArrayInputStream(baos.toByteArray()));
@@ -445,19 +502,19 @@ public class SerializerObjectsTest extends Checker {
 		IntObjBean readNul = readObject(IntObjBean.class, new ByteArrayInputStream(baos.toByteArray()));
 		assertEquals(nul, readNul);
 		
-		IntObjBean nul1 = new IntObjBean(null, (int)-1);
+		IntObjBean nul1 = new IntObjBean(null, (int) -1);
 		baos = new ByteArrayOutputStream();
 		serializer.writeObject(baos, nul1);
 		IntObjBean readNul1 = readObject(IntObjBean.class, new ByteArrayInputStream(baos.toByteArray()));
 		assertEquals(nul1, readNul1);
 		
-		IntObjBean nul2 = new IntObjBean((int)0, null);
+		IntObjBean nul2 = new IntObjBean((int) 0, null);
 		baos = new ByteArrayOutputStream();
 		serializer.writeObject(baos, nul2);
 		IntObjBean readNul2 = readObject(IntObjBean.class, new ByteArrayInputStream(baos.toByteArray()));
 		assertEquals(nul2, readNul2);
-
-		IntObjBean zero = new IntObjBean(0,0);
+		
+		IntObjBean zero = new IntObjBean(0, 0);
 		baos = new ByteArrayOutputStream();
 		serializer.writeObject(baos, zero);
 		IntObjBean readZero = readObject(IntObjBean.class, new ByteArrayInputStream(baos.toByteArray()));
@@ -490,19 +547,19 @@ public class SerializerObjectsTest extends Checker {
 		LongObjBean readNul = readObject(LongObjBean.class, new ByteArrayInputStream(baos.toByteArray()));
 		assertEquals(nul, readNul);
 		
-		LongObjBean nul1 = new LongObjBean(null, (long)-1);
+		LongObjBean nul1 = new LongObjBean(null, (long) -1);
 		baos = new ByteArrayOutputStream();
 		serializer.writeObject(baos, nul1);
 		LongObjBean readNul1 = readObject(LongObjBean.class, new ByteArrayInputStream(baos.toByteArray()));
 		assertEquals(nul1, readNul1);
 		
-		LongObjBean nul2 = new LongObjBean((long)0, null);
+		LongObjBean nul2 = new LongObjBean((long) 0, null);
 		baos = new ByteArrayOutputStream();
 		serializer.writeObject(baos, nul2);
 		LongObjBean readNul2 = readObject(LongObjBean.class, new ByteArrayInputStream(baos.toByteArray()));
 		assertEquals(nul2, readNul2);
-
-		LongObjBean zero = new LongObjBean(0L,0L);
+		
+		LongObjBean zero = new LongObjBean(0L, 0L);
 		baos = new ByteArrayOutputStream();
 		serializer.writeObject(baos, zero);
 		LongObjBean readZero = readObject(LongObjBean.class, new ByteArrayInputStream(baos.toByteArray()));
@@ -526,7 +583,7 @@ public class SerializerObjectsTest extends Checker {
 		LongObjBean readSeq = readObject(LongObjBean.class, new ByteArrayInputStream(baos.toByteArray()));
 		assertEquals(seq, readSeq);
 	}
-
+	
 	@Check
 	public void testSerializeFloat() throws IOException {
 		FloatObjBean nul = new FloatObjBean(null, null);
@@ -546,8 +603,8 @@ public class SerializerObjectsTest extends Checker {
 		serializer.writeObject(baos, nul2);
 		FloatObjBean readNul2 = readObject(FloatObjBean.class, new ByteArrayInputStream(baos.toByteArray()));
 		assertEquals(nul2, readNul2);
-
-		FloatObjBean zero = new FloatObjBean(0.0f,0.0f);
+		
+		FloatObjBean zero = new FloatObjBean(0.0f, 0.0f);
 		baos = new ByteArrayOutputStream();
 		serializer.writeObject(baos, zero);
 		FloatObjBean readZero = readObject(FloatObjBean.class, new ByteArrayInputStream(baos.toByteArray()));
@@ -570,7 +627,7 @@ public class SerializerObjectsTest extends Checker {
 		serializer.writeObject(baos, min_norm);
 		FloatObjBean readMin_norm = readObject(FloatObjBean.class, new ByteArrayInputStream(baos.toByteArray()));
 		assertEquals(min_norm, readMin_norm);
-
+		
 		FloatObjBean seq = new FloatObjBean(123567890.1f, 098765432.1f);
 		baos = new ByteArrayOutputStream();
 		serializer.writeObject(baos, seq);
@@ -578,7 +635,7 @@ public class SerializerObjectsTest extends Checker {
 		assertEquals(seq, readSeq);
 	}
 	
-
+	
 	@Check
 	public void testSerializeDouble() throws IOException {
 		DoubleObjBean nul = new DoubleObjBean(null, null);
@@ -598,8 +655,8 @@ public class SerializerObjectsTest extends Checker {
 		serializer.writeObject(baos, nul2);
 		DoubleObjBean readNul2 = readObject(DoubleObjBean.class, new ByteArrayInputStream(baos.toByteArray()));
 		assertEquals(nul2, readNul2);
-
-		DoubleObjBean zero = new DoubleObjBean(0.0,0.0);
+		
+		DoubleObjBean zero = new DoubleObjBean(0.0, 0.0);
 		baos = new ByteArrayOutputStream();
 		serializer.writeObject(baos, zero);
 		DoubleObjBean readZero = readObject(DoubleObjBean.class, new ByteArrayInputStream(baos.toByteArray()));
@@ -629,7 +686,7 @@ public class SerializerObjectsTest extends Checker {
 		DoubleObjBean readSeq = readObject(DoubleObjBean.class, new ByteArrayInputStream(baos.toByteArray()));
 		assertEquals(seq, readSeq);
 	}
-
+	
 	
 	public static void main(String[] args) {
 		SerializerObjectsTest test = new SerializerObjectsTest();
@@ -640,9 +697,9 @@ public class SerializerObjectsTest extends Checker {
 			System.err.println("\terror: " + t);
 			t.printStackTrace();
 		});
-		if (!result.wentExpected()) {
-			fail("There were test failures: "+result.allUnexpected());
+		if ( !result.wentExpected()) {
+			fail("There were test failures: " + result.allUnexpected());
 		}
 	}
-
+	
 }
