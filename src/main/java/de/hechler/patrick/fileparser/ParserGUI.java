@@ -1437,6 +1437,7 @@ public class ParserGUI extends JFrame {
 //								private Boolean   explicitLineSep          = null;
 								explicitLineSepComboBox.setSelectedIndex(explicitLineSep == null ? 0 : explicitLineSep ? 2 : 1);//null,false,true
 							}
+							repaint();
 						} catch (IOException e1) {
 							e1.printStackTrace();
 						}
