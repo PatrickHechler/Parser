@@ -3,8 +3,8 @@ package de.hechler.patrick.fileparser;
 
 public class Replace {
 	
-	public final String regex;
-	public final String replacement;
+	public String regex;
+	public String replacement;
 	
 	public Replace(String regex, String replace) {
 		this.regex = regex;

@@ -480,14 +480,15 @@ public class ParserGUI extends JFrame {
 			// ("<-hl> or <-headLines> [END_MAGIX] <arg>* [END_MAGIX]");
 			// (" to set the head lines (the END_MAGIX will not be added on the start or end
 			// of the head lines)");
-			final JButton headLinesButton = new JButton("set head lines");
-			final JFrame headLinesFrame = new JFrame("head lines:");
-			final JTextArea headLinesTestArea = new JTextArea();
+			final JButton headLinesResetButton = new JButton("reset");
+			final JButton headLinesSetButton = new JButton("set head lines");
+			final JFrame headLinesFrame = new JFrame("HEAD LINES:");
+			final JTextArea headLinesTexstArea = new JTextArea();
 			headLinesFrame.addWindowListener(new WindowAdapter() {
 				
 				@Override
 				public void windowClosed(WindowEvent e) {
-					String t = headLinesTestArea.getText();
+					String t = headLinesTexstArea.getText();
 					if (t == null || t.isEmpty()) headLines = null;
 					else headLines = t.split("(\r\n)|\r|\n");
 				};
@@ -497,40 +498,41 @@ public class ParserGUI extends JFrame {
 			headLinesFrame.setVisible(false);
 			headLinesFrame.setLayout(null);
 			headLinesFrame.setBounds(0, 0, 500, 500);
+			headLinesTexstArea.setBounds(0, 0, 500, 500);
 			headLinesFrame.setLocationRelativeTo(null);
-			headLinesFrame.add(headLinesTestArea);
+			headLinesFrame.add(headLinesTexstArea);
 			headLinesFrame.addHierarchyBoundsListener(new HierarchyBoundsAdapter() {
 				
 				@Override
 				public void ancestorResized(HierarchyEvent e) {
-					headLinesTestArea.setBounds(headLinesFrame.getBounds());
+					headLinesTexstArea.setBounds(headLinesFrame.getBounds());
 				}
 				
 			});
-			headLinesTestArea.setBounds(0, 0, 500, 500);
-			headLinesButton.addActionListener(a -> {
+			headLinesSetButton.addActionListener(a -> {
 				headLinesFrame.setVisible(true);
 			});
-			final JComboBox <String> headLinesComboBox = new JComboBox <String>();
-			headLinesComboBox.addItem("not choosen");
-			headLinesComboBox.addItem("head lines are enabled");
-			headLinesComboBox.addItem("head lines are disabled");
+			headLinesResetButton.addActionListener(a -> {
+				headLinesTexstArea.setText("");
+				headLines = null;
+			});
 			x = VOID;
 			y += LINE;
-			headLinesButton.setBounds(x, y, FIRST_X, Y);
+			headLinesResetButton.setBounds(x, y, FIRST_X, Y);
 			x += FIRST_X + VOID;
-			headLinesComboBox.setBounds(x, y, SECOND_X, Y);
-			advancedOptionsComps.add(headLinesButton);
-			advancedOptionsComps.add(headLinesComboBox);
-			add(headLinesButton);
-			add(headLinesComboBox);
+			headLinesSetButton.setBounds(x, y, SECOND_X, Y);
+			advancedOptionsComps.add(headLinesSetButton);
+			advancedOptionsComps.add(headLinesResetButton);
+			add(headLinesSetButton);
+			add(headLinesResetButton);
 			
 			// String[] tailLines = null;
 			// ("<-tl> or <-tailLines> [END_MAGIX] <arg>* [END_MAGIX]");
 			// (" to set the tail lines (the END_MAGIX will not be added on the start or end
 			// of the tail lines)");
-			final JButton tailLinesButton = new JButton("set head lines");
-			final JFrame tailLinesFrame = new JFrame("head lines:");
+			final JButton tailLinesResetButton = new JButton("reset");
+			final JButton tailLinesSetButton = new JButton("set tail lines");
+			final JFrame tailLinesFrame = new JFrame("TAIL LINES:");
 			final JTextArea tailLinesTestArea = new JTextArea();
 			tailLinesFrame.addWindowListener(new WindowAdapter() {
 				
@@ -546,6 +548,7 @@ public class ParserGUI extends JFrame {
 			tailLinesFrame.setVisible(false);
 			tailLinesFrame.setLayout(null);
 			tailLinesFrame.setBounds(0, 0, 500, 500);
+			tailLinesTestArea.setBounds(0, 0, 500, 500);
 			tailLinesFrame.setLocationRelativeTo(null);
 			tailLinesFrame.add(tailLinesTestArea);
 			tailLinesFrame.addHierarchyBoundsListener(new HierarchyBoundsAdapter() {
@@ -556,23 +559,22 @@ public class ParserGUI extends JFrame {
 				}
 				
 			});
-			tailLinesTestArea.setBounds(0, 0, 500, 500);
-			tailLinesButton.addActionListener(a -> {
+			tailLinesResetButton.addActionListener(e -> {
+				tailLinesTestArea.setText("");
+				tailLines = null;
+			});
+			tailLinesSetButton.addActionListener(e -> {
 				tailLinesFrame.setVisible(true);
 			});
-			final JComboBox <String> tailLinesComboBox = new JComboBox <String>();
-			tailLinesComboBox.addItem("not choosen");
-			tailLinesComboBox.addItem("head lines are enabled");
-			tailLinesComboBox.addItem("head lines are disabled");
 			x = VOID;
 			y += LINE;
-			tailLinesButton.setBounds(x, y, FIRST_X, Y);
+			tailLinesResetButton.setBounds(x, y, FIRST_X, Y);
 			x += FIRST_X + VOID;
-			tailLinesComboBox.setBounds(x, y, SECOND_X, Y);
-			advancedOptionsComps.add(tailLinesButton);
-			advancedOptionsComps.add(tailLinesComboBox);
-			add(tailLinesButton);
-			add(tailLinesComboBox);
+			tailLinesSetButton.setBounds(x, y, SECOND_X, Y);
+			advancedOptionsComps.add(tailLinesSetButton);
+			advancedOptionsComps.add(tailLinesResetButton);
+			add(tailLinesSetButton);
+			add(tailLinesResetButton);
 			
 			// String lineStart = null;
 			// ("<-ls> or <-lineStart> [LINE_START]");
@@ -804,34 +806,30 @@ public class ParserGUI extends JFrame {
 				replacesFrame.setLayout(null);
 				replacesFrame.setBounds(0, 0, 550, 750);
 				replacesFrame.setLocationRelativeTo(null);
-				rebuildReplaces(true);
+				rebuildReplaces();
 				replacesManageText.setEditable(false);
-				replacesManageButton.addActionListener(e -> {
-					rebuildReplaces(false);
-				});
 				{
+					replacesManageButton.addActionListener(e -> {
+						rebuildReplaces();
+						replacesFrame.setVisible(true);
+					});
 					repAddReplace.addActionListener(e -> {
-						// I was stupid, so I needed this:
-						// if (replaces != null && replaces.length > 0 && replaces[replaces.length - 1] == null) {
-						// System.err.println("no action: " + e);
-						// return;
-						// }
-						// System.err.println("action: " + e);
 						if (replaces != null) {
 							Replace[] zw = new Replace[replaces.length + 1];
 							System.arraycopy(replaces, 0, zw, 0, replaces.length);
 							zw[replaces.length] = new Replace("your regex", "your replacement");
 							replaces = zw;
+							rebuildReplaces();
 						} else {
 							replaces = new Replace[1];
 							replaces[0] = new Replace("your regex", "your replacement");
 						}
-						rebuildReplaces(false);
+						rebuildReplaces();
 					});
 					repAddReplace.removeActionListener(repAddReplace.getActionListeners().length > 1 ? repAddReplace.getActionListeners()[0] : null);
 					repDeleteAllReplaces.addActionListener(e -> {
 						replaces = null;
-						rebuildReplaces(false);
+						rebuildReplaces();
 					});
 					repDeleteAllReplaces.removeActionListener(repDeleteAllReplaces.getActionListeners().length > 1 ? repDeleteAllReplaces.getActionListeners()[0] : null);
 					// repAddReplace.setBounds(VOID + x1 + VOID, yy, x2 + x3 + VOID, Y);
@@ -1272,7 +1270,7 @@ public class ParserGUI extends JFrame {
 										build.append('\n').append(headLines[i]);
 									}
 								} else {
-									headLinesTestArea.setText(null);
+									headLinesTexstArea.setText(null);
 								}
 								
 								// private String[] tailLines = null;
@@ -1351,7 +1349,7 @@ public class ParserGUI extends JFrame {
 								forceOverComboBox.setSelectedIndex(forceOverrde ? 1 : 0);
 								
 								// private String charset = null;
-								if (charset != null) {
+								if (charset != null || charset.trim().isEmpty()) {
 									try {
 										Charset.forName(charset);
 									} catch (IllegalArgumentException e1) {
@@ -1359,6 +1357,7 @@ public class ParserGUI extends JFrame {
 									}
 									charsetTPane.setText(charset);
 								} else {
+									charset = null;
 									charsetTPane.setText("");
 								}
 								
@@ -1425,17 +1424,17 @@ public class ParserGUI extends JFrame {
 									lineSepComboBox.setSelectedIndex(0);
 								}
 								
-//								private Replace[] replaces                 = null;
-								// TODO possibly do something here
+								// private Replace[] replaces = null;
+								rebuildReplaces();
 								
-//								private Boolean   onlyRepsAfterReplace     = null;
-								onlyReplacesWhenReplacedCB.setSelectedIndex(onlyRepsAfterReplace == null ? 0 : onlyRepsAfterReplace ? 2 : 1);//null,false,true
+								// private Boolean onlyRepsAfterReplace = null;
+								onlyReplacesWhenReplacedCB.setSelectedIndex(onlyRepsAfterReplace == null ? 0 : onlyRepsAfterReplace ? 2 : 1);// null,false,true
 								
-//								private Boolean   supressReplaces          = null;
-								supressReplacesComboBox.setSelectedIndex(supressReplaces == null ? 0 : supressReplaces ? 2 : 1);//null,false,true
+								// private Boolean supressReplaces = null;
+								supressReplacesComboBox.setSelectedIndex(supressReplaces == null ? 0 : supressReplaces ? 2 : 1);// null,false,true
 								
-//								private Boolean   explicitLineSep          = null;
-								explicitLineSepComboBox.setSelectedIndex(explicitLineSep == null ? 0 : explicitLineSep ? 2 : 1);//null,false,true
+								// private Boolean explicitLineSep = null;
+								explicitLineSepComboBox.setSelectedIndex(explicitLineSep == null ? 0 : explicitLineSep ? 2 : 1);// null,false,true
 							}
 						} catch (IOException e1) {
 							e1.printStackTrace();
@@ -1519,7 +1518,7 @@ public class ParserGUI extends JFrame {
 	final JButton          repAddReplace          = new JButton("add a replacement (left field: regex, right field: replacement)");
 	final List <Component> repRemovableComponents = new ArrayList <Component>();
 	
-	private void rebuildReplaces(boolean init) {
+	private void rebuildReplaces() {
 		// final JScrollBar repScrollBar = new JScrollBar();
 		int yy = VOID;
 		final int x1 = 100, x2 = 200, x3 = x2;
@@ -1531,46 +1530,56 @@ public class ParserGUI extends JFrame {
 			for (int i = 0; i < replaces.length; i ++ ) {
 				final int ai = i;
 				int xx = VOID;
-				final JButton b = new JButton("delete");
-				b.setBounds(xx, yy, x1, Y);
-				replacesFrame.add(b);
+				final JButton deleteOneReplace = new JButton("delete");
+				deleteOneReplace.setBounds(xx, yy, x1, Y);
+				replacesFrame.add(deleteOneReplace);
 				xx += VOID + x1;
-				final JTextPane tp1 = new JTextPane();
-				tp1.setText(replaces[ai].regex);
-				tp1.setBounds(xx, yy, x2, Y);
-				replacesFrame.add(tp1);
+				final JTextPane regexTextPane = new JTextPane();
+				regexTextPane.setText(replaces[ai].regex);
+				regexTextPane.setBounds(xx, yy, x2, Y);
+				replacesFrame.add(regexTextPane);
 				xx += VOID + x2;
-				final JTextPane tp2 = new JTextPane();
-				tp2.setText(replaces[ai].replacement);
-				tp2.setBounds(xx, yy, x3, Y);
-				replacesFrame.add(tp2);
+				final JTextPane replacementTextPane = new JTextPane();
+				replacementTextPane.setText(replaces[ai].replacement);
+				replacementTextPane.setBounds(xx, yy, x3, Y);
+				replacesFrame.add(replacementTextPane);
 				xx += VOID + x2;
 				yy += LINE;
-				repRemovableComponents.add(b);
-				repRemovableComponents.add(tp1);
-				repRemovableComponents.add(tp2);
-				b.addActionListener(e -> {
+				repRemovableComponents.add(deleteOneReplace);
+				repRemovableComponents.add(regexTextPane);
+				repRemovableComponents.add(replacementTextPane);
+				replacesFrame.addWindowListener(new WindowAdapter() {
+					
+					@Override
+					public void windowClosed(WindowEvent e) {
+						rebuildReplaces();
+					}
+					
+				});
+				deleteOneReplace.addActionListener(e -> {
 					Replace[] zw = new Replace[replaces.length - 1];
 					System.arraycopy(replaces, 0, zw, 0, ai);
 					System.arraycopy(replaces, ai + 1, zw, ai, zw.length - ai);
 					replaces = zw;
-					rebuildReplaces(false);
+					rebuildReplaces();
 				});
-				tp1.addFocusListener(new FocusAdapter() {
+				regexTextPane.addFocusListener(new FocusAdapter() {
+					
+					@Override
+					public void focusGained(FocusEvent e) {
+					}
 					
 					@Override
 					public void focusLost(FocusEvent e) {
-						replaces[ai] = new Replace(tp1.getText(), replaces[ai].replacement);
-						rebuildReplaces(false);
+						replaces[ai].regex = regexTextPane.getText();
 					}
 					
 				});
-				tp2.addFocusListener(new FocusAdapter() {
+				replacementTextPane.addFocusListener(new FocusAdapter() {
 					
 					@Override
 					public void focusLost(FocusEvent e) {
-						replaces[ai] = new Replace(replaces[ai].regex, tp2.getText());
-						rebuildReplaces(false);
+						replaces[ai].replacement = replacementTextPane.getText();
 					}
 					
 				});
@@ -1605,13 +1614,13 @@ public class ParserGUI extends JFrame {
 		// replacesFrame.add(repAddReplace);
 		repDeleteAllReplaces.setBounds(VOID, yy, x1, Y);
 		// replacesFrame.add(repDeleteAllReplaces);
-		replacesFrame.setVisible(false);
-		if ( !init) {
-			replacesFrame.repaint();
-			replacesFrame.setVisible(true);
-			replacesFrame.repaint();
-		}
-		
+		// replacesFrame.setVisible(false);
+		// if ( !init) {
+		// replacesFrame.repaint();
+		// replacesFrame.setVisible(true);
+		// replacesFrame.repaint();
+		// }
+		replacesFrame.repaint();
 		// repScrollBar.setBounds(0, 0, 10, replacesFrame.getBounds().height - 30);
 		// replacesFrame.add(repScrollBar);
 	}

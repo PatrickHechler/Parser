@@ -336,7 +336,7 @@ public class Deserializer {
 				assertRead(in, PRIMITIVE);
 				read = readPrimitive(in);
 			} else {
-				assertRead(in, OBJECT);
+//				assertRead(in, OBJECT);
 				read = readObject(in);
 			}
 			Array.set(arr, i, read);
