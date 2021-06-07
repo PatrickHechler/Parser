@@ -13,7 +13,7 @@ import de.hechler.patrick.zeugs.check.anotations.CheckClass;
 import de.hechler.patrick.zeugs.check.anotations.Start;
 
 @CheckClass
-public class SerializerObjectsTest extends Checker {
+public class SerializerObjectsChecker extends Checker {
 	
 	Serializer   serializer;
 	Deserializer deserializer;
@@ -687,19 +687,5 @@ public class SerializerObjectsTest extends Checker {
 		assertEquals(seq, readSeq);
 	}
 	
-	
-	public static void main(String[] args) {
-		SerializerObjectsTest test = new SerializerObjectsTest();
-		CheckResult result = test.result();
-		result.print();
-		result.forAllUnexpected((m, t) -> {
-			System.err.println("method: " + m);
-			System.err.println("\terror: " + t);
-			t.printStackTrace();
-		});
-		if ( !result.wentExpected()) {
-			fail("There were test failures: " + result.allUnexpected());
-		}
-	}
 	
 }

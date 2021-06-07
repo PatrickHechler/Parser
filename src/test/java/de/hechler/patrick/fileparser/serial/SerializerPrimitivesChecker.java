@@ -13,9 +13,9 @@ import de.hechler.patrick.zeugs.check.anotations.CheckClass;
 import de.hechler.patrick.zeugs.check.anotations.Start;
 
 @CheckClass
-public class SerializerPrimitivesTest extends Checker {
-
-	Serializer serializer;
+public class SerializerPrimitivesChecker extends Checker {
+	
+	Serializer   serializer;
 	Deserializer deserializer;
 	
 	@Start
@@ -25,39 +25,46 @@ public class SerializerPrimitivesTest extends Checker {
 	}
 	
 	
-	public <T> T readObject(Class<T> tClazz, InputStream in) throws IOException {
+	public <T> T readObject(Class <T> tClazz, InputStream in) throws IOException {
 		return readObject(deserializer, tClazz, in);
 	}
-	public static <T> T readObject(Deserializer deser, Class<T> tClazz, InputStream in) throws IOException {
+	
+	public static <T> T readObject(Deserializer deser, Class <T> tClazz, InputStream in) throws IOException {
 		Object result = deser.readObject(in);
 		if (result == null) {
 			return null;
 		}
-		if (!tClazz.isInstance(result)) {
-			fail("Wrong instance read: "+ result.getClass().getName()+" instead of "+tClazz.getName());
+		if ( !tClazz.isInstance(result)) {
+			fail("Wrong instance read: " + result.getClass().getName() + " instead of " + tClazz.getName());
 		}
 		return tClazz.cast(result);
 	}
-
+	
 	
 	public static class BooleanBean {
+		
 		public boolean value1;
 		public boolean value2;
+		
 		public BooleanBean() {
-			this(false,false);
+			this(false, false);
 		}
+		
 		public BooleanBean(boolean value1, boolean value2) {
 			this.value1 = value1;
 			this.value2 = value2;
 		}
+		
 		@Override
 		public String toString() {
 			return "[" + value1 + "," + value2 + "]";
 		}
+		
 		@Override
 		public int hashCode() {
 			return Objects.hash(value1, value2);
 		}
+		
 		@Override
 		public boolean equals(Object obj) {
 			if (this == obj)
@@ -69,26 +76,33 @@ public class SerializerPrimitivesTest extends Checker {
 			BooleanBean other = (BooleanBean) obj;
 			return value1 == other.value1 && value2 == other.value2;
 		}
+		
 	}
 	
 	public static class ByteBean {
+		
 		public byte value1;
 		public byte value2;
+		
 		public ByteBean() {
-			this((byte)0,(byte)0);
+			this((byte) 0, (byte) 0);
 		}
+		
 		public ByteBean(byte value1, byte value2) {
 			this.value1 = value1;
 			this.value2 = value2;
 		}
+		
 		@Override
 		public String toString() {
 			return "[" + value1 + "," + value2 + "]";
 		}
+		
 		@Override
 		public int hashCode() {
 			return Objects.hash(value1, value2);
 		}
+		
 		@Override
 		public boolean equals(Object obj) {
 			if (this == obj)
@@ -100,26 +114,33 @@ public class SerializerPrimitivesTest extends Checker {
 			ByteBean other = (ByteBean) obj;
 			return value1 == other.value1 && value2 == other.value2;
 		}
+		
 	}
 	
 	public static class CharBean {
+		
 		public char value1;
 		public char value2;
+		
 		public CharBean() {
-			this('\0','\0');
+			this('\0', '\0');
 		}
+		
 		public CharBean(char value1, char value2) {
 			this.value1 = value1;
 			this.value2 = value2;
 		}
+		
 		@Override
 		public String toString() {
 			return "[" + value1 + "," + value2 + "]";
 		}
+		
 		@Override
 		public int hashCode() {
 			return Objects.hash(value1, value2);
 		}
+		
 		@Override
 		public boolean equals(Object obj) {
 			if (this == obj)
@@ -131,26 +152,33 @@ public class SerializerPrimitivesTest extends Checker {
 			CharBean other = (CharBean) obj;
 			return value1 == other.value1 && value2 == other.value2;
 		}
+		
 	}
-
+	
 	public static class ShortBean {
+		
 		public short value1;
 		public short value2;
+		
 		public ShortBean() {
-			this((short)0,(short)0);
+			this((short) 0, (short) 0);
 		}
+		
 		public ShortBean(short value1, short value2) {
 			this.value1 = value1;
 			this.value2 = value2;
 		}
+		
 		@Override
 		public String toString() {
 			return "[" + value1 + "," + value2 + "]";
 		}
+		
 		@Override
 		public int hashCode() {
 			return Objects.hash(value1, value2);
 		}
+		
 		@Override
 		public boolean equals(Object obj) {
 			if (this == obj)
@@ -162,26 +190,33 @@ public class SerializerPrimitivesTest extends Checker {
 			ShortBean other = (ShortBean) obj;
 			return value1 == other.value1 && value2 == other.value2;
 		}
+		
 	}
 	
 	public static class IntBean {
+		
 		public int value1;
 		public int value2;
+		
 		public IntBean() {
-			this(0,0);
+			this(0, 0);
 		}
+		
 		public IntBean(int value1, int value2) {
 			this.value1 = value1;
 			this.value2 = value2;
 		}
+		
 		@Override
 		public String toString() {
 			return "[" + value1 + "," + value2 + "]";
 		}
+		
 		@Override
 		public int hashCode() {
 			return Objects.hash(value1, value2);
 		}
+		
 		@Override
 		public boolean equals(Object obj) {
 			if (this == obj)
@@ -193,26 +228,33 @@ public class SerializerPrimitivesTest extends Checker {
 			IntBean other = (IntBean) obj;
 			return value1 == other.value1 && value2 == other.value2;
 		}
+		
 	}
 	
 	public static class LongBean {
+		
 		public long value1;
 		public long value2;
+		
 		public LongBean() {
-			this(0L,0L);
+			this(0L, 0L);
 		}
+		
 		public LongBean(long value1, long value2) {
 			this.value1 = value1;
 			this.value2 = value2;
 		}
+		
 		@Override
 		public String toString() {
 			return "[" + value1 + "," + value2 + "]";
 		}
+		
 		@Override
 		public int hashCode() {
 			return Objects.hash(value1, value2);
 		}
+		
 		@Override
 		public boolean equals(Object obj) {
 			if (this == obj)
@@ -224,26 +266,33 @@ public class SerializerPrimitivesTest extends Checker {
 			LongBean other = (LongBean) obj;
 			return value1 == other.value1 && value2 == other.value2;
 		}
+		
 	}
 	
 	public static class FloatBean {
+		
 		public float value1;
 		public float value2;
+		
 		public FloatBean() {
-			this(0.0f,0.0f);
+			this(0.0f, 0.0f);
 		}
-		public FloatBean(float value1, float value2) { 
+		
+		public FloatBean(float value1, float value2) {
 			this.value1 = value1;
 			this.value2 = value2;
 		}
+		
 		@Override
 		public String toString() {
 			return "[" + value1 + "," + value2 + "]";
 		}
+		
 		@Override
 		public int hashCode() {
 			return Objects.hash(value1, value2);
 		}
+		
 		@Override
 		public boolean equals(Object obj) {
 			if (this == obj)
@@ -255,26 +304,33 @@ public class SerializerPrimitivesTest extends Checker {
 			FloatBean other = (FloatBean) obj;
 			return value1 == other.value1 && value2 == other.value2;
 		}
+		
 	}
 	
 	public static class DoubleBean {
+		
 		public double value1;
 		public double value2;
+		
 		public DoubleBean() {
-			this(0.0,0.0);
+			this(0.0, 0.0);
 		}
-		public DoubleBean(double value1, double value2) { 
+		
+		public DoubleBean(double value1, double value2) {
 			this.value1 = value1;
 			this.value2 = value2;
 		}
+		
 		@Override
 		public String toString() {
 			return "[" + value1 + "," + value2 + "]";
 		}
+		
 		@Override
 		public int hashCode() {
 			return Objects.hash(value1, value2);
 		}
+		
 		@Override
 		public boolean equals(Object obj) {
 			if (this == obj)
@@ -286,12 +342,13 @@ public class SerializerPrimitivesTest extends Checker {
 			DoubleBean other = (DoubleBean) obj;
 			return value1 == other.value1 && value2 == other.value2;
 		}
+		
 	}
 	
-
+	
 	@Check
 	public void testSerializeBoolean() throws IOException {
-		BooleanBean zero = new BooleanBean(false,false);
+		BooleanBean zero = new BooleanBean(false, false);
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		serializer.writeObject(baos, zero);
 		BooleanBean readZero = readObject(BooleanBean.class, new ByteArrayInputStream(baos.toByteArray()));
@@ -315,10 +372,10 @@ public class SerializerPrimitivesTest extends Checker {
 		BooleanBean readMix2 = readObject(BooleanBean.class, new ByteArrayInputStream(baos.toByteArray()));
 		assertEquals(mix2, readMix2);
 	}
-
+	
 	@Check
 	public void testSerializeByte() throws IOException {
-		ByteBean zero = new ByteBean((byte)0,(byte)0);
+		ByteBean zero = new ByteBean((byte) 0, (byte) 0);
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		serializer.writeObject(baos, zero);
 		ByteBean readZero = readObject(ByteBean.class, new ByteArrayInputStream(baos.toByteArray()));
@@ -336,7 +393,7 @@ public class SerializerPrimitivesTest extends Checker {
 		ByteBean readMin = readObject(ByteBean.class, new ByteArrayInputStream(baos.toByteArray()));
 		assertEquals(min, readMin);
 		
-		ByteBean seq = new ByteBean((byte)123, (byte)-98);
+		ByteBean seq = new ByteBean((byte) 123, (byte) -98);
 		baos = new ByteArrayOutputStream();
 		serializer.writeObject(baos, seq);
 		ByteBean readSeq = readObject(ByteBean.class, new ByteArrayInputStream(baos.toByteArray()));
@@ -345,7 +402,7 @@ public class SerializerPrimitivesTest extends Checker {
 	
 	@Check
 	public void testSerializeShort() throws IOException {
-		ShortBean zero = new ShortBean((short)0,(short)0);
+		ShortBean zero = new ShortBean((short) 0, (short) 0);
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		serializer.writeObject(baos, zero);
 		ShortBean readZero = readObject(ShortBean.class, new ByteArrayInputStream(baos.toByteArray()));
@@ -363,7 +420,7 @@ public class SerializerPrimitivesTest extends Checker {
 		ShortBean readMin = readObject(ShortBean.class, new ByteArrayInputStream(baos.toByteArray()));
 		assertEquals(min, readMin);
 		
-		ShortBean seq = new ShortBean((short)12356, (short)21098);
+		ShortBean seq = new ShortBean((short) 12356, (short) 21098);
 		baos = new ByteArrayOutputStream();
 		serializer.writeObject(baos, seq);
 		ShortBean readSeq = readObject(ShortBean.class, new ByteArrayInputStream(baos.toByteArray()));
@@ -372,7 +429,7 @@ public class SerializerPrimitivesTest extends Checker {
 	
 	@Check
 	public void testSerializeChar() throws IOException {
-		CharBean zero = new CharBean((char)0,(char)0);
+		CharBean zero = new CharBean((char) 0, (char) 0);
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		serializer.writeObject(baos, zero);
 		CharBean readZero = readObject(CharBean.class, new ByteArrayInputStream(baos.toByteArray()));
@@ -390,7 +447,7 @@ public class SerializerPrimitivesTest extends Checker {
 		CharBean readMin = readObject(CharBean.class, new ByteArrayInputStream(baos.toByteArray()));
 		assertEquals(min, readMin);
 		
-		CharBean seq = new CharBean((char)12356, (char)21098);
+		CharBean seq = new CharBean((char) 12356, (char) 21098);
 		baos = new ByteArrayOutputStream();
 		serializer.writeObject(baos, seq);
 		CharBean readSeq = readObject(CharBean.class, new ByteArrayInputStream(baos.toByteArray()));
@@ -399,7 +456,7 @@ public class SerializerPrimitivesTest extends Checker {
 	
 	@Check
 	public void testSerializeInt() throws IOException {
-		IntBean zero = new IntBean(0,0);
+		IntBean zero = new IntBean(0, 0);
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		serializer.writeObject(baos, zero);
 		IntBean readZero = readObject(IntBean.class, new ByteArrayInputStream(baos.toByteArray()));
@@ -426,7 +483,7 @@ public class SerializerPrimitivesTest extends Checker {
 	
 	@Check
 	public void testSerializeLong() throws IOException {
-		LongBean zero = new LongBean(0L,0L);
+		LongBean zero = new LongBean(0L, 0L);
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		serializer.writeObject(baos, zero);
 		LongBean readZero = readObject(LongBean.class, new ByteArrayInputStream(baos.toByteArray()));
@@ -450,10 +507,10 @@ public class SerializerPrimitivesTest extends Checker {
 		LongBean readSeq = readObject(LongBean.class, new ByteArrayInputStream(baos.toByteArray()));
 		assertEquals(seq, readSeq);
 	}
-
+	
 	@Check
 	public void testSerializeFloat() throws IOException {
-		FloatBean zero = new FloatBean(0.0f,0.0f);
+		FloatBean zero = new FloatBean(0.0f, 0.0f);
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		serializer.writeObject(baos, zero);
 		FloatBean readZero = readObject(FloatBean.class, new ByteArrayInputStream(baos.toByteArray()));
@@ -484,10 +541,10 @@ public class SerializerPrimitivesTest extends Checker {
 		assertEquals(seq, readSeq);
 	}
 	
-
+	
 	@Check
 	public void testSerializeDouble() throws IOException {
-		DoubleBean zero = new DoubleBean(0.0,0.0);
+		DoubleBean zero = new DoubleBean(0.0, 0.0);
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		serializer.writeObject(baos, zero);
 		DoubleBean readZero = readObject(DoubleBean.class, new ByteArrayInputStream(baos.toByteArray()));
@@ -517,20 +574,5 @@ public class SerializerPrimitivesTest extends Checker {
 		DoubleBean readSeq = readObject(DoubleBean.class, new ByteArrayInputStream(baos.toByteArray()));
 		assertEquals(seq, readSeq);
 	}
-
 	
-	public static void main(String[] args) {
-		SerializerPrimitivesTest test = new SerializerPrimitivesTest();
-		CheckResult result = test.result();
-		result.print();
-		result.forAllUnexpected((m, t) -> {
-			System.err.println("method: " + m);
-			System.err.println("\terror: " + t);
-			t.printStackTrace();
-		});
-		if (!result.wentExpected()) {
-			fail("There were test failures: "+result.allUnexpected());
-		}
-	}
-
 }

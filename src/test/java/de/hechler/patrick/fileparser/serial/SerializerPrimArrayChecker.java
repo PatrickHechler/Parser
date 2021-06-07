@@ -15,7 +15,7 @@ import de.hechler.patrick.zeugs.check.anotations.CheckClass;
 import de.hechler.patrick.zeugs.check.anotations.Start;
 
 @CheckClass
-public class SerializerPrimArrayTest extends Checker {
+public class SerializerPrimArrayChecker extends Checker {
 
 	Serializer serializer;
 	Deserializer deserializer;
@@ -711,21 +711,6 @@ public class SerializerPrimArrayTest extends Checker {
 		serializer.writeObject(baos, babHuge);
 		BigArraysBean readBabHuge = readObject(BigArraysBean.class, new ByteArrayInputStream(baos.toByteArray()));
 		assertEquals(babHuge, readBabHuge);
-	}
-
-	
-	public static void main(String[] args) {
-		SerializerPrimArrayTest test = new SerializerPrimArrayTest();
-		CheckResult result = test.result();
-		result.print();
-		result.forAllUnexpected((m, t) -> {
-			System.err.println("method: " + m);
-			System.err.println("\terror: " + t);
-			t.printStackTrace();
-		});
-		if (!result.wentExpected()) {
-			fail("There were test failures: "+result.allUnexpected());
-		}
 	}
 
 }

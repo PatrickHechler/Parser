@@ -1,17 +1,21 @@
 package de.hechler.patrick;
 
 import de.hechler.patrick.fileparser.ParserChecker;
-import de.hechler.patrick.fileparser.serial.SerializerObjectsTest;
-import de.hechler.patrick.fileparser.serial.SerializerPrimArrayTest;
-import de.hechler.patrick.fileparser.serial.SerializerPrimitivesTest;
+import de.hechler.patrick.fileparser.serial.SerializerObjectsChecker;
+import de.hechler.patrick.fileparser.serial.SerializerPrimArrayChecker;
+import de.hechler.patrick.fileparser.serial.SerializerPrimitivesChecker;
+import de.hechler.patrick.zeugs.check.BigCheckResult;
 import de.hechler.patrick.zeugs.check.Checker;
-import de.hechler.patrick.zeugs.check.Checker.BigCheckResult;
 import de.hechler.patrick.zeugs.check.exceptions.CheckerNotEqualsExeption;
 
-public class Fileparser {
+public class StarterTest {
+	
+	public void testname() throws Exception {
+		main(new String[0]);
+	}
 	
 	public static void main(String[] args) {
-		BigCheckResult res = Checker.checkAll(true, ParserChecker.class, SerializerObjectsTest.class, SerializerPrimitivesTest.class, SerializerPrimArrayTest.class);
+		BigCheckResult res = Checker.checkAll(true, ParserChecker.class, SerializerObjectsChecker.class, SerializerPrimitivesChecker.class, SerializerPrimArrayChecker.class);
 		res.print();
 		res.forAllUnexpected((c, m, t) -> {
 			System.err.println(c + "  ->  " + m + ":");

@@ -4,11 +4,13 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.Scanner;
 
-import de.hechler.patrick.zeugs.check.*;
-import de.hechler.patrick.zeugs.check.anotations.*;
+import de.hechler.patrick.zeugs.check.Checker;
+import de.hechler.patrick.zeugs.check.anotations.Check;
+import de.hechler.patrick.zeugs.check.anotations.CheckClass;
+import de.hechler.patrick.zeugs.check.anotations.End;
+import de.hechler.patrick.zeugs.check.anotations.Start;
 
 @CheckClass
 // TODO more checks
