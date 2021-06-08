@@ -59,9 +59,13 @@ public class Parser {
 	
 	public void parse(Scanner input, PrintStream output) {
 		for (int i = 0; i < properties.headLines.length; i ++ ) {
-			if (properties.lineStartAlsoOnHeadLines) print(output, properties.lineStart);
+			if (properties.lineStartAlsoOnHeadLines) {
+				print(output, properties.lineStart);
+			}
 			print(output, properties.headLines[i]);
-			if (properties.lineEndAlsoOnHeadLines) print(output, properties.lineEnd);
+			if (properties.lineEndAlsoOnHeadLines) {
+				print(output, properties.lineEnd);
+			}
 			println(output);
 		}
 		while (input.hasNextLine()) {
@@ -88,7 +92,9 @@ public class Parser {
 				{
 					char[] chars;
 					for (chars = line.toCharArray(); dif < chars.length; dif ++ ) {
-						if (chars[dif] > ' ') break;// ' ' is the higest whitespace all below is a command (like CR, LF, TAB, ...)
+						if (chars[dif] > ' ') {
+							break;// ' ' is the highest whitespace all below is a command (like CR, LF, TAB, ...)
+						}
 					}
 					whitespace = line.substring(0, dif);
 					line = line.substring(dif, chars.length);
@@ -119,9 +125,13 @@ public class Parser {
 			println(output, properties.commentEndLine);
 		}
 		for (int i = 0; i < properties.tailLines.length; i ++ ) {
-			if (properties.lineStartAlsoOnTailLines) print(output, properties.lineStart);
+			if (properties.lineStartAlsoOnTailLines) {
+				print(output, properties.lineStart);
+			}
 			print(output, properties.tailLines[i]);
-			if (properties.lineEndAlsoOnTailLines) print(output, properties.lineEnd);
+			if (properties.lineEndAlsoOnTailLines) {
+				print(output, properties.lineEnd);
+			}
 			println(output);
 		}
 	}

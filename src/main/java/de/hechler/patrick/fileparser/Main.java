@@ -3,6 +3,7 @@ package de.hechler.patrick.fileparser;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.PrintStream;
 import java.nio.charset.Charset;
 import java.nio.charset.IllegalCharsetNameException;
@@ -171,12 +172,13 @@ public class Main {
 			switch (args[i].toLowerCase()) {
 			case "--nf":
 			case "--nofinish":
-				if (!finishMsg) exit("double of <--noFinish>", args);
+				if ( !finishMsg) exit("double of <--noFinish>", args);
 				finishMsg = false;
 				break;
 			case "--s":
 			case "--silent":
 				if (silent) exit("double of <--silent>", args);
+				if (dest != null) exit("can't be silent if a target is set!", args);
 				silent = true;
 				finishMsg = false;
 				break;
@@ -438,21 +440,39 @@ public class Main {
 			exit("class -> " + e.getClass().getName() + "   msg -> " + e.getLocalizedMessage(), args);
 		}
 		try {
-			print = new PatrOutput(new FileOutputStream(dest), cs, System.lineSeparator());
+			OutputStream destStream;
+			if (silent) {
+				destStream = PatrSilentOutput.getInstance();
+			} else {
+				destStream = new FileOutputStream(dest);
+			}
+			if (out) {
+				if (err) {
+					print = new PatrOutput(destStream, cs, System.lineSeparator(), System.out, System.err);
+				} else {
+					print = new PatrOutput(destStream, cs, System.lineSeparator(), System.out);
+				}
+			} else {
+				if (err) {
+					print = new PatrOutput(destStream, cs, System.lineSeparator(), System.err);
+				} else {
+					print = new PatrOutput(destStream, cs, System.lineSeparator());
+				}
+			}
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 			exit("class -> " + e.getClass().getName() + "   msg -> " + e.getLocalizedMessage(), args);
 		}
 		try {
 			props = new ParserTemplate(headLines == null ? props.headLines : headLines, tailLines == null ? props.tailLines : tailLines, lineStart == null ? props.lineStart : lineStart,
-					lineStartAlsoOnHeadLines == null ? props.lineStartAlsoOnHeadLines : lineStartAlsoOnHeadLines, lineStartAlsoOnTailLines == null ? props.lineStartAlsoOnTailLines : lineStartAlsoOnTailLines,
-					lineEnd == null ? props.lineEnd : lineEnd, lineEndAlsoOnHeadLines == null ? props.lineEndAlsoOnHeadLines : lineEndAlsoOnHeadLines,
-					lineEndAlsoOnTailLines == null ? props.lineEndAlsoOnTailLines : lineEndAlsoOnTailLines, supressCommentExtraction == null ? props.supressCommentExtraction : supressCommentExtraction,
-					asmCommentSymbol == null ? props.unparsedCommentSymbol : asmCommentSymbol, parsedCommentSymbol == null ? props.parsedCommentSymbol : parsedCommentSymbol,
-					commentEndLine == null ? props.commentEndLine : commentEndLine, startAfterWhite == null ? props.startAfterWhite : startAfterWhite,
-					(replaces.isEmpty() ? (props == null ? Collections.emptyList() : props.replaces) : replaces), supressReplaces == null ? props.supressReplaces : supressReplaces,
-					continueAfterReplaces == null ? props.continueAfterReplace : continueAfterReplaces, lineSep == null ? (props == null ? System.lineSeparator() : props.lineSeparator) : lineSep,
-					explicitLineSep == null ? props.explicitLineSep : explicitLineSep);
+				lineStartAlsoOnHeadLines == null ? props.lineStartAlsoOnHeadLines : lineStartAlsoOnHeadLines, lineStartAlsoOnTailLines == null ? props.lineStartAlsoOnTailLines : lineStartAlsoOnTailLines,
+				lineEnd == null ? props.lineEnd : lineEnd, lineEndAlsoOnHeadLines == null ? props.lineEndAlsoOnHeadLines : lineEndAlsoOnHeadLines,
+				lineEndAlsoOnTailLines == null ? props.lineEndAlsoOnTailLines : lineEndAlsoOnTailLines, supressCommentExtraction == null ? props.supressCommentExtraction : supressCommentExtraction,
+				asmCommentSymbol == null ? props.unparsedCommentSymbol : asmCommentSymbol, parsedCommentSymbol == null ? props.parsedCommentSymbol : parsedCommentSymbol,
+				commentEndLine == null ? props.commentEndLine : commentEndLine, startAfterWhite == null ? props.startAfterWhite : startAfterWhite,
+				(replaces.isEmpty() ? (props == null ? Collections.emptyList() : props.replaces) : replaces), supressReplaces == null ? props.supressReplaces : supressReplaces,
+				continueAfterReplaces == null ? props.continueAfterReplace : continueAfterReplaces, lineSep == null ? (props == null ? System.lineSeparator() : props.lineSeparator) : lineSep,
+				explicitLineSep == null ? props.explicitLineSep : explicitLineSep);
 		} catch (NullPointerException e) {
 			StringBuilder build = new StringBuilder("i am missing some properties: [");
 			if (headLines == null) build.append("headLines, ");
