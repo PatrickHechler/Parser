@@ -3,6 +3,7 @@ package de.hechler.patrick.fileparser;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.nio.charset.Charset;
@@ -31,6 +32,22 @@ public class Main {
 	private static PrintStream print;
 	private static boolean     finishMsg;
 	
+	public static void parse(String[] args, Scanner sc, PrintStream out) {
+		if (args.length == 0) {
+			new ParserGUI().load();
+			return;
+		}
+		long start = System.currentTimeMillis();
+		setup(args);
+		if (parser == null) {
+			exit("parser is not set", args);
+		}
+		parser.parse(sc, out);
+		if (finishMsg) {
+			System.out.println("finish parsing after: " + time(System.currentTimeMillis() - start));
+		}
+	}
+	
 	public static void main(String[] args) {
 		if (args.length == 0) {
 			new ParserGUI().load();
@@ -38,11 +55,19 @@ public class Main {
 		}
 		long start = System.currentTimeMillis();
 		setup(args);
-		if (parser == null) exit("parser is not set", args);
-		if (scan == null) exit("input is not set", args);
-		if (print == null) exit("output is not set", args);
+		if (parser == null) {
+			exit("parser is not set", args);
+		}
+		if (scan == null) {
+			exit("input is not set", args);
+		}
+		if (print == null) {
+			exit("output is not set", args);
+		}
 		parser.parse(scan, print);
-		if (finishMsg) System.out.println("finish parsing after: " + time(System.currentTimeMillis() - start));
+		if (finishMsg) {
+			System.out.println("finish parsing after: " + time(System.currentTimeMillis() - start));
+		}
 	}
 	
 	private static String time(long time) {
@@ -465,7 +490,8 @@ public class Main {
 		}
 		try {
 			props = new ParserTemplate(headLines == null ? props.headLines : headLines, tailLines == null ? props.tailLines : tailLines, lineStart == null ? props.lineStart : lineStart,
-				lineStartAlsoOnHeadLines == null ? props.lineStartAlsoOnHeadLines : lineStartAlsoOnHeadLines, lineStartAlsoOnTailLines == null ? props.lineStartAlsoOnTailLines : lineStartAlsoOnTailLines,
+				lineStartAlsoOnHeadLines == null ? props.lineStartAlsoOnHeadLines : lineStartAlsoOnHeadLines,
+				lineStartAlsoOnTailLines == null ? props.lineStartAlsoOnTailLines : lineStartAlsoOnTailLines,
 				lineEnd == null ? props.lineEnd : lineEnd, lineEndAlsoOnHeadLines == null ? props.lineEndAlsoOnHeadLines : lineEndAlsoOnHeadLines,
 				lineEndAlsoOnTailLines == null ? props.lineEndAlsoOnTailLines : lineEndAlsoOnTailLines, supressCommentExtraction == null ? props.supressCommentExtraction : supressCommentExtraction,
 				asmCommentSymbol == null ? props.unparsedCommentSymbol : asmCommentSymbol, parsedCommentSymbol == null ? props.parsedCommentSymbol : parsedCommentSymbol,
