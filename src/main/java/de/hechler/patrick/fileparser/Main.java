@@ -3,7 +3,6 @@ package de.hechler.patrick.fileparser;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.nio.charset.Charset;
@@ -38,6 +37,8 @@ public class Main {
 			return;
 		}
 		long start = System.currentTimeMillis();
+		scan = sc;
+		print = out;
 		setup(args);
 		if (parser == null) {
 			exit("parser is not set", args);
