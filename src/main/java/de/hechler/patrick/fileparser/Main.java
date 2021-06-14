@@ -180,8 +180,8 @@ public class Main {
 		boolean silent = false;
 		boolean out = false;
 		boolean err = false;
-		String src = null;
-		String dest = null;
+		String src = scan == null ? null : "unknown";
+		String dest = print == null ? null : "unknown";
 		boolean forceOverrde = false;
 		String charset = null;
 		String asmCommentSymbol = null;
