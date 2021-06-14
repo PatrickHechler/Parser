@@ -77,7 +77,7 @@ public class Main {
 		} else if (time < 240000) {
 			return (time / 1000) + "sec";
 		} else {
-			System.err.println("wat was wron with me?!");
+			System.err.println("wat was wron with me?! I needed " + time + "ms to parse!");
 			if (time < 7200000) {
 				return (time / 60000) + "min";
 			} else if (time < 432000000) {
