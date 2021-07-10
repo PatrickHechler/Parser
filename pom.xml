@@ -66,11 +66,11 @@
     <repositories>
         <repository>
             <id>patmcsreleases</id>
-            <url>http://patmcs.hechler.de:8080/repository/maven-releases/</url>
-        </repository>
-        <repository>
-        	<id>patmcssnapshots</id>
-        	<url>http://patmcs.hechler.de:8080/repository/maven-snapshots/</url>
+			<url>http://nexuspat.hechler.de/repository/maven-releases/</url>
+		</repository>
+		<repository>
+			<id>patmcssnapshots</id>
+			<url>http://nexuspat.hechler.de/repository/maven-snapshots/</url>
       	</repository>
         <repository>
         	<id>central</id>
